@@ -1,0 +1,65 @@
+### Variables
+@baseUrl = http://localhost:3000/api
+@contentType = application/json
+
+### Obtener todos los productos
+GET {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+### Obtener un producto específico por ID
+GET {{baseUrl}}/products/1
+Content-Type: {{contentType}}
+
+### Crear un nuevo producto
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+    "name": "Laptop Gaming",
+    "price": 1299.99,
+    "description": "Laptop gaming de alta gama con RTX 3080"
+}
+
+### Actualizar un producto existente
+PUT {{baseUrl}}/products/1
+Content-Type: {{contentType}}
+
+{
+    "name": "Laptop Gaming Pro",
+    "price": 1499.99,
+    "description": "Laptop gaming actualizada con RTX 3080 Ti"
+}
+
+### Eliminar un producto
+DELETE {{baseUrl}}/products/1
+Content-Type: {{contentType}}
+
+### Ejemplos adicionales de creación de productos
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+    "name": "Monitor 4K",
+    "price": 499.99,
+    "description": "Monitor 4K de 32 pulgadas"
+}
+
+###
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+    "name": "Teclado Mecánico",
+    "price": 129.99,
+    "description": "Teclado mecánico RGB con switches Cherry MX"
+}
+
+###
+POST {{baseUrl}}/products
+Content-Type: {{contentType}}
+
+{
+    "name": "Mouse Gaming",
+    "price": 79.99,
+    "description": "Mouse gaming inalámbrico con 16000 DPI"
+} 
