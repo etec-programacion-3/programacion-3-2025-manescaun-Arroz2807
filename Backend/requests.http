@@ -1,65 +1,48 @@
-### Variables
-@baseUrl = http://localhost:3000/api
-@contentType = application/json
-
-### Obtener todos los productos
-GET {{baseUrl}}/products
-Content-Type: {{contentType}}
-
-### Obtener un producto específico por ID
-GET {{baseUrl}}/products/1
-Content-Type: {{contentType}}
-
-### Crear un nuevo producto
-POST {{baseUrl}}/products
-Content-Type: {{contentType}}
+### Crear un usuario
+POST http://127.0.0.1:5000/users
+Content-Type: application/json
 
 {
-    "name": "Laptop Gaming",
-    "price": 1299.99,
-    "description": "Laptop gaming de alta gama con RTX 3080"
+  "name": "Nico",
+  "email": "nico@example.com",
+  "password_hash": "123456"
 }
 
-### Actualizar un producto existente
-PUT {{baseUrl}}/products/1
-Content-Type: {{contentType}}
+### Obtener todos los usuarios
+GET http://127.0.0.1:5000/users
+
+### Obtener un usuario por ID
+GET http://127.0.0.1:5000/users/1
+
+### Crear una tarea para el usuario con id=1
+POST http://127.0.0.1:5000/tasks
+Content-Type: application/json
 
 {
-    "name": "Laptop Gaming Pro",
-    "price": 1499.99,
-    "description": "Laptop gaming actualizada con RTX 3080 Ti"
+  "user_id": 1,
+  "title": "Primera tarea",
+  "description": "Descripción de la tarea",
+  "status": "pending"
 }
 
-### Eliminar un producto
-DELETE {{baseUrl}}/products/1
-Content-Type: {{contentType}}
+### Listar todas las tareas
+GET http://127.0.0.1:5000/tasks
 
-### Ejemplos adicionales de creación de productos
-POST {{baseUrl}}/products
-Content-Type: {{contentType}}
+### Obtener una tarea específica
+GET http://127.0.0.1:5000/tasks/1
+
+### Crear una nota para el usuario con id=1
+POST http://127.0.0.1:5000/notes
+Content-Type: application/json
 
 {
-    "name": "Monitor 4K",
-    "price": 499.99,
-    "description": "Monitor 4K de 32 pulgadas"
+  "user_id": 1,
+  "title": "Nota inicial",
+  "content": "Contenido de prueba"
 }
 
-###
-POST {{baseUrl}}/products
-Content-Type: {{contentType}}
+### Listar todas las notas
+GET http://127.0.0.1:5000/notes
 
-{
-    "name": "Teclado Mecánico",
-    "price": 129.99,
-    "description": "Teclado mecánico RGB con switches Cherry MX"
-}
-
-###
-POST {{baseUrl}}/products
-Content-Type: {{contentType}}
-
-{
-    "name": "Mouse Gaming",
-    "price": 79.99,
-    "description": "Mouse gaming inalámbrico con 16000 DPI"
-} 
+### Obtener una nota específica
+GET http://127.0.0.1:5000/notes/1
