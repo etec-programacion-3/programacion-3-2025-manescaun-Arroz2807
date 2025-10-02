@@ -1,0 +1,48 @@
+### Crear un usuario
+POST http://127.0.0.1:5000/users
+Content-Type: application/json
+
+{
+  "name": "Nico",
+  "email": "nico@example.com",
+  "password_hash": "123456"
+}
+
+### Obtener todos los usuarios
+GET http://127.0.0.1:5000/users
+
+### Obtener un usuario por ID
+GET http://127.0.0.1:5000/users/1
+
+### Crear una tarea para el usuario con id=1
+POST http://127.0.0.1:5000/tasks
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "Primera tarea",
+  "description": "Descripción de la tarea",
+  "status": "pending"
+}
+
+### Listar todas las tareas
+GET http://127.0.0.1:5000/tasks
+
+### Obtener una tarea específica
+GET http://127.0.0.1:5000/tasks/1
+
+### Crear una nota para el usuario con id=1
+POST http://127.0.0.1:5000/notes
+Content-Type: application/json
+
+{
+  "user_id": 1,
+  "title": "Nota inicial",
+  "content": "Contenido de prueba"
+}
+
+### Listar todas las notas
+GET http://127.0.0.1:5000/notes
+
+### Obtener una nota específica
+GET http://127.0.0.1:5000/notes/1
