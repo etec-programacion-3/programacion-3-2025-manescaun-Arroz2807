@@ -1,22 +1,22 @@
-from flask import Flask, request, jsonify
-from config import Config
+from flask import Flask, request, jsonify   # Flask y utilidades para crear la API
+from config import Config                   # Configuración central del proyecto
 
-# Importar extensiones inicializadas en extensions.py
+# Importar extensiones inicializadas en extensions.py (db y migraciones)
 from extensions import db, migrate
 
-# Importar modelos (necesario para que SQLAlchemy conozca las tablas)
+# Importar modelos para que SQLAlchemy conozca las tablas
 from models import User, Task, Note, File, TaskCollaborator, NoteCollaborator
 
 
 def create_app():
-    app = Flask(__name__)
-    app.config.from_object(Config)
+    app = Flask(__name__)                 # Crea la aplicación Flask
+    app.config.from_object(Config)        # Carga la configuración desde config.py
 
-    # Inicializar DB y migraciones
+    # Inicializa la base de datos y migraciones con la app
     db.init_app(app)
     migrate.init_app(app, db)
 
-    @app.route("/")
+    @app.route("/")  # Ruta principal de prueba
     def index():
         return "Backend funcionando con SQLAlchemy 🚀"
 
@@ -24,24 +24,22 @@ def create_app():
     @app.route("/users", methods=["POST"])
     def create_user():
         """
-        Crear un nuevo usuario.
-        Espera: { "name": "...", "email": "...", "password_hash": "..." }
+        Crea un nuevo usuario en la base de datos.
+        Recibe un JSON con: { "name": "...", "email": "...", "password_hash": "..." }
         """
-        data = request.get_json()
+        data = request.get_json()   # Obtiene el JSON del request
         user = User(
             name=data["name"],
             email=data["email"],
             password_hash=data["password_hash"]
         )
-        db.session.add(user)
-        db.session.commit()
+        db.session.add(user)        # Añade el usuario a la sesión
+        db.session.commit()         # Guarda cambios en la BD
         return jsonify({"message": "Usuario creado", "user_id": user.user_id}), 201
 
     @app.route("/users", methods=["GET"])
     def get_users():
-        """
-        Obtener todos los usuarios registrados.
-        """
+        """Devuelve todos los usuarios registrados en formato JSON"""
         users = User.query.all()
         return jsonify([{
             "user_id": u.user_id,
@@ -52,9 +50,7 @@ def create_app():
 
     @app.route("/users/<int:user_id>", methods=["GET"])
     def get_user(user_id):
-        """
-        Obtener un usuario por ID.
-        """
+        """Devuelve un usuario específico por su ID"""
         user = User.query.get_or_404(user_id)
         return jsonify({
             "user_id": user.user_id,
@@ -67,15 +63,15 @@ def create_app():
     @app.route("/tasks", methods=["POST"])
     def create_task():
         """
-        Crear una nueva tarea asociada a un usuario.
-        Espera: { "user_id": ..., "title": "...", "description": "...", "status": "..." }
+        Crea una nueva tarea para un usuario.
+        Recibe: { "user_id": ..., "title": "...", "description": "...", "status": "..." }
         """
         data = request.get_json()
         task = Task(
             user_id_FK=data["user_id"],
             title=data["title"],
             description=data.get("description"),
-            status=data.get("status", "pending")
+            status=data.get("status", "pending")   # Por defecto estado = "pending"
         )
         db.session.add(task)
         db.session.commit()
@@ -83,9 +79,7 @@ def create_app():
 
     @app.route("/tasks", methods=["GET"])
     def get_tasks():
-        """
-        Obtener todas las tareas.
-        """
+        """Devuelve todas las tareas registradas"""
         tasks = Task.query.all()
         return jsonify([{
             "task_id": t.task_id,
@@ -97,9 +91,7 @@ def create_app():
 
     @app.route("/tasks/<int:task_id>", methods=["GET"])
     def get_task(task_id):
-        """
-        Obtener una tarea por ID.
-        """
+        """Devuelve una tarea específica por su ID"""
         task = Task.query.get_or_404(task_id)
         return jsonify({
             "task_id": task.task_id,
@@ -113,8 +105,8 @@ def create_app():
     @app.route("/notes", methods=["POST"])
     def create_note():
         """
-        Crear una nueva nota asociada a un usuario.
-        Espera: { "user_id": ..., "title": "...", "content": "..." }
+        Crea una nueva nota para un usuario.
+        Recibe: { "user_id": ..., "title": "...", "content": "..." }
         """
         data = request.get_json()
         note = Note(
@@ -128,9 +120,7 @@ def create_app():
 
     @app.route("/notes", methods=["GET"])
     def get_notes():
-        """
-        Obtener todas las notas.
-        """
+        """Devuelve todas las notas registradas"""
         notes = Note.query.all()
         return jsonify([{
             "note_id": n.note_id,
@@ -141,9 +131,7 @@ def create_app():
 
     @app.route("/notes/<int:note_id>", methods=["GET"])
     def get_note(note_id):
-        """
-        Obtener una nota por ID.
-        """
+        """Devuelve una nota específica por su ID"""
         note = Note.query.get_or_404(note_id)
         return jsonify({
             "note_id": note.note_id,
@@ -156,5 +144,5 @@ def create_app():
 
 
 if __name__ == "__main__":
-    app = create_app()
-    app.run(debug=True)
+    app = create_app()       # Crea la app Flask
+    app.run(debug=True)      # Levanta el servidor en modo debug
