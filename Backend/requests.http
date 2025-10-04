@@ -1,11 +1,13 @@
+### ---------------- USERS ----------------
+
 ### Crear un usuario
 POST http://127.0.0.1:5000/users
 Content-Type: application/json
 
 {
-  "name": "Nico",
-  "email": "nico@example.com",
-  "password_hash": "123456"
+  "name": "Nico2",
+  "email": "nico2@example.com",
+  "password_hash": "1123456"
 }
 
 ### Obtener todos los usuarios
@@ -14,24 +16,43 @@ GET http://127.0.0.1:5000/users
 ### Obtener un usuario por ID
 GET http://127.0.0.1:5000/users/1
 
-### Crear una tarea para el usuario con id=1
-POST http://127.0.0.1:5000/tasks
+
+### ---------------- API TASKS (CRUD REST) ----------------
+
+### Crear tarea (API REST)
+POST http://127.0.0.1:5000/api/tasks
 Content-Type: application/json
 
 {
   "user_id": 1,
-  "title": "Primera tarea",
-  "description": "Descripción de la tarea",
-  "status": "pending"
+  "title": "Tarea con API REST",
+  "description": "Con validación y due_date",
+  "status": "pending",
+  "due_date": "2025-10-15"
 }
 
-### Listar todas las tareas
-GET http://127.0.0.1:5000/tasks
+### Listar tareas (API REST)
+GET http://127.0.0.1:5000/api/tasks
 
-### Obtener una tarea específica
-GET http://127.0.0.1:5000/tasks/1
+### Obtener tarea por ID (API REST)
+GET http://127.0.0.1:5000/api/tasks/1
 
-### Crear una nota para el usuario con id=1
+### Actualizar tarea (API REST)
+PUT http://127.0.0.1:5000/api/tasks/1
+Content-Type: application/json
+
+{
+  "title": "Tarea actualizada",
+  "status": "completed"
+}
+
+### Eliminar tarea (API REST)
+DELETE http://127.0.0.1:5000/api/tasks/1
+
+
+### ---------------- NOTES ----------------
+
+### Crear una nota
 POST http://127.0.0.1:5000/notes
 Content-Type: application/json
 
