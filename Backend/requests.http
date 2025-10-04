@@ -50,20 +50,32 @@ Content-Type: application/json
 DELETE http://127.0.0.1:5000/api/tasks/1
 
 
-### ---------------- NOTES ----------------
+### ---------------- API NOTES (CRUD REST) ----------------
 
-### Crear una nota
-POST http://127.0.0.1:5000/notes
+### Crear nota (API REST)
+POST http://127.0.0.1:5000/api/notes
 Content-Type: application/json
 
 {
   "user_id": 1,
-  "title": "Nota inicial",
-  "content": "Contenido de prueba"
+  "title": "Nota con API REST 2",
+  "content": "Contenido inicial"
 }
 
-### Listar todas las notas
-GET http://127.0.0.1:5000/notes
+### Listar notas (API REST)
+GET http://127.0.0.1:5000/api/notes
 
-### Obtener una nota específica
-GET http://127.0.0.1:5000/notes/1
+### Obtener nota por ID (API REST)
+GET http://127.0.0.1:5000/api/notes/1
+
+### Actualizar nota (API REST)
+PUT http://127.0.0.1:5000/api/notes/1
+Content-Type: application/json
+
+{
+  "title": "Nota actualizada",
+  "content": "Contenido modificado"
+}
+
+### Eliminar nota (API REST)
+DELETE http://127.0.0.1:5000/api/notes/1
