@@ -153,13 +153,17 @@ def create_app():
         return jsonify({"message": "Tarea eliminada"})
 
     # ---------------- NOTES ----------------
-    @app.route("/notes", methods=["POST"])
-    def create_note():
+    @app.route("/api/notes", methods=["POST"])
+    def api_create_note():
         """
-        Crea una nueva nota para un usuario.
+        Crea una nueva nota (API REST).
         Recibe: { "user_id": ..., "title": "...", "content": "..." }
         """
         data = request.get_json()
+
+        if not data.get("title"):
+            return jsonify({"error": "El título es obligatorio"}), 400
+
         note = Note(
             user_id_FK=data["user_id"],
             title=data["title"],
@@ -169,9 +173,9 @@ def create_app():
         db.session.commit()
         return jsonify({"message": "Nota creada", "note_id": note.note_id}), 201
 
-    @app.route("/notes", methods=["GET"])
-    def get_notes():
-        """Devuelve todas las notas registradas"""
+    @app.route("/api/notes", methods=["GET"])
+    def api_get_notes():
+        """Devuelve todas las notas registradas (API REST)."""
         notes = Note.query.all()
         return jsonify([{
             "note_id": n.note_id,
@@ -180,9 +184,9 @@ def create_app():
             "user_id": n.user_id_FK
         } for n in notes])
 
-    @app.route("/notes/<int:note_id>", methods=["GET"])
-    def get_note(note_id):
-        """Devuelve una nota específica por su ID"""
+    @app.route("/api/notes/<int:note_id>", methods=["GET"])
+    def api_get_note(note_id):
+        """Devuelve una nota específica por su ID (API REST)."""
         note = Note.query.get_or_404(note_id)
         return jsonify({
             "note_id": note.note_id,
@@ -190,6 +194,31 @@ def create_app():
             "content": note.content,
             "user_id": note.user_id_FK
         })
+
+    @app.route("/api/notes/<int:note_id>", methods=["PUT"])
+    def api_update_note(note_id):
+        """Actualizar una nota existente (API REST)."""
+        note = Note.query.get_or_404(note_id)
+        data = request.get_json()
+
+        if "title" in data and not data["title"]:
+            return jsonify({"error": "El título no puede estar vacío"}), 400
+
+        if "title" in data:
+            note.title = data["title"]
+        if "content" in data:
+            note.content = data["content"]
+
+        db.session.commit()
+        return jsonify({"message": "Nota actualizada"})
+
+    @app.route("/api/notes/<int:note_id>", methods=["DELETE"])
+    def api_delete_note(note_id):
+        """Eliminar una nota existente (API REST)."""
+        note = Note.query.get_or_404(note_id)
+        db.session.delete(note)
+        db.session.commit()
+        return jsonify({"message": "Nota eliminada"})
 
     return app
 
