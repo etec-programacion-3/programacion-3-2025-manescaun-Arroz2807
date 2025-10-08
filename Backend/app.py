@@ -1,3 +1,5 @@
+# app.py
+
 from flask import Flask, request, jsonify   # Flask y utilidades para crear la API
 from config import Config                   # Configuración central del proyecto
 from datetime import datetime               # Para manejar fechas
@@ -7,6 +9,9 @@ from extensions import db, migrate
 
 # Importar modelos para que SQLAlchemy conozca las tablas
 from models import User, Task, Note, File, TaskCollaborator, NoteCollaborator
+
+# Importar el servicio de calendario
+from services.calendar_service import CalendarService
 
 
 def create_app():
@@ -60,12 +65,12 @@ def create_app():
             "registration_date": user.registration_date
         })
 
-    # ---------------- TASKS ----------------
+    # ---------------- TASKS (API REST + Calendario) ----------------
     @app.route("/api/tasks", methods=["POST"])
     def api_create_task():
         """
         Crear una nueva tarea (API REST).
-        Valida que el título no esté vacío y que la fecha tenga formato correcto.
+        Si tiene una fecha (due_date), se registra un evento de calendario simulado.
         """
         data = request.get_json()
 
@@ -88,6 +93,11 @@ def create_app():
         )
         db.session.add(task)
         db.session.commit()
+
+        # Invocar la lógica de calendario si hay fecha
+        if due_date:
+            CalendarService.create_event(task.title, due_date)
+
         return jsonify({"message": "Tarea creada", "task_id": task.task_id}), 201
 
     @app.route("/api/tasks", methods=["GET"])
@@ -125,6 +135,9 @@ def create_app():
         if "title" in data and not data["title"]:
             return jsonify({"error": "El título no puede estar vacío"}), 400
 
+        old_due_date = task.due_date
+        new_due_date = data.get("due_date", None)
+
         if "title" in data:
             task.title = data["title"]
         if "description" in data:
@@ -133,15 +146,22 @@ def create_app():
             task.status = data["status"]
 
         if "due_date" in data:
-            if data["due_date"]:
+            if new_due_date:
                 try:
-                    task.due_date = datetime.strptime(data["due_date"], "%Y-%m-%d").date()
+                    task.due_date = datetime.strptime(new_due_date, "%Y-%m-%d").date()
                 except ValueError:
                     return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
             else:
                 task.due_date = None
 
         db.session.commit()
+
+        # Invocar lógica de calendario
+        if task.due_date and (old_due_date != task.due_date):
+            CalendarService.update_event(task.title, task.due_date)
+        elif old_due_date and not task.due_date:
+            CalendarService.delete_event(task.title)
+
         return jsonify({"message": "Tarea actualizada"})
 
     @app.route("/api/tasks/<int:task_id>", methods=["DELETE"])
@@ -150,9 +170,14 @@ def create_app():
         task = Task.query.get_or_404(task_id)
         db.session.delete(task)
         db.session.commit()
+
+        # Eliminar evento del calendario si la tarea tenía fecha
+        if task.due_date:
+            CalendarService.delete_event(task.title)
+
         return jsonify({"message": "Tarea eliminada"})
 
-    # ---------------- NOTES ----------------
+    # ---------------- NOTES (API REST) ----------------
     @app.route("/api/notes", methods=["POST"])
     def api_create_note():
         """
