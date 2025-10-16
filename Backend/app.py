@@ -13,6 +13,7 @@ from models import User, Task, Note, File, TaskCollaborator, NoteCollaborator
 # Importar el servicio de calendario
 from services.calendar_service import CalendarService
 
+from flask_cors import CORS
 
 def create_app():
     app = Flask(__name__)                 # Crea la aplicación Flask
@@ -21,6 +22,9 @@ def create_app():
     # Inicializa la base de datos y migraciones con la app
     db.init_app(app)
     migrate.init_app(app, db)
+
+    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173"]}})
+
 
     @app.route("/")  # Ruta principal de prueba
     def index():
