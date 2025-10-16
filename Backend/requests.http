@@ -25,10 +25,10 @@ Content-Type: application/json
 
 {
   "user_id": 1,
-  "title": "Tarea con API REST",
+  "title": "Prueba Issue 6",
   "description": "Con validación y due_date",
   "status": "pending",
-  "due_date": "2025-10-15"
+  "due_date": "2025-10-16"
 }
 
 ### Listar tareas (API REST)
