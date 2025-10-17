@@ -6,17 +6,19 @@
 - **Ciclo Lectivo:** 2025  
 - **Profesor:** Daniel Quinteros  
 
+
 ---
 
-## Cómo levantar el Backend
+
+## Cómo descargar el proyecto y crear el entrono virtual
 
 
 ### 1. Clonar el repositorio
 Si aún no tenés el proyecto en tu máquina, clonalo con:
 
 ```bash
-git clone <URL_DEL_REPO>
-cd <NOMBRE_DEL_PROYECTO>
+git clone git@github.com:etec-programacion-3/programacion-3-2025-manescaun-Arroz2807.git
+cd programacion-3-2025-manescaun-Arroz2807
 ```
 
 
@@ -39,7 +41,20 @@ venv\Scripts\Activate
 ```
 
 
-### 3. Instalar dependencias
+---
+
+
+## Cómo levantar el Backend
+
+
+### 1. Cambiar al directorio del Backend
+
+```bash
+cd Backend
+```
+
+
+### 2. Instalar dependencias
 
 Con el entorno virtual activado, instalar las dependencias desde el archivo `requirements.txt`:
 
@@ -48,7 +63,7 @@ pip install -r requirements.txt
 ```
 
 
-### 4. Inicializar la base de datos y migraciones
+### 3. Inicializar la base de datos y migraciones
 
 Ejecutar los siguientes comandos para crear la base de datos y aplicar la primera migración:
 
@@ -59,9 +74,49 @@ flask db upgrade
 ```
 
 
-### 5. Levantar el servidor
+### 4. Levantar el servicio
 
+```bash
 python app.py
+```
+
+Para detenerlo: 
+
+```bash
+Ctrl + C
+```
+
 
 ---
 
+
+## Cómo levantar el Frontend
+
+
+### 1. Cambiar al directorio del Backend
+
+```bash
+cd Frontend
+```
+
+
+### 2. Instalar las dependencias
+
+Con el entorno virtual activado y antes de ejecutar el proyecto, es necesario instalar todas las dependencias listadas en el archivo package.json:
+
+```bash
+npm install
+```
+
+
+### 3. Levantar el servicio
+
+```bash
+python app.py
+```
+
+Para detenerlo: 
+
+```bash
+Ctrl + C
+```
