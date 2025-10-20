@@ -93,7 +93,7 @@ Ctrl + C
 ## Cómo levantar el Frontend
 
 
-### 1. Cambiar al directorio del Backend
+### 1. Cambiar al directorio del Frontend
 
 ```bash
 cd Frontend
@@ -112,7 +112,7 @@ npm install
 ### 3. Levantar el servicio
 
 ```bash
-python app.py
+npm run dev
 ```
 
 Para detenerlo: 
