@@ -85,7 +85,7 @@ const styles = {
     margin: "0 auto",
   },
   title: {
-    color: "#1E3A8A",
+    color: "#ffffffff",
     textAlign: "center",
     marginBottom: "1rem",
   },

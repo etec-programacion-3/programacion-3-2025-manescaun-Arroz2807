@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-ro
 
 // Importamos los componentes de la aplicación
 import TaskList from "./components/TaskList";
-import NotesPlaceholder from "./components/NotesPlaceholder";
+import NotesPage from "./components/NotesPage";
 
 // Componente principal de la aplicación
 export default function App() {
@@ -52,8 +52,8 @@ export default function App() {
                   <Route path="/" element={<Navigate to="/tasks" />} />
                   {/* Página de lista de tareas */}
                   <Route path="/tasks" element={<TaskList />} />
-                  {/* Página de apuntes (placeholder por ahora) */}
-                  <Route path="/notes" element={<NotesPlaceholder />} />
+                  {/* Página de apuntes: lista (izq) + editor (derecha) */}
+                  <Route path="/notes" element={<NotesPage />} />
                 </Routes>
               </td>
             </tr>

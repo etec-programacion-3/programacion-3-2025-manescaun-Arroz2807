@@ -10,6 +10,9 @@ const handleResponse = async (response, action) => {
   return response.json(); // Devolvemos el JSON si todo está bien
 };
 
+
+// --- TAREAS ---
+
 // Obtener todas las tareas (GET)
 export const getTasks = async () => {
   const response = await fetch(`${API_URL}/tasks`);
@@ -41,4 +44,44 @@ export const updateTask = async (id, taskData) => {
   });
 
   return handleResponse(response, "actualizar la tarea");
+};
+
+
+// --- NOTAS ---
+
+// Obtener todas las notas
+export const getNotes = async () => {
+  const response = await fetch(`${API_URL}/notes`);
+  return handleResponse(response, "obtener las notas");
+};
+
+// Crear una nota nueva
+export const createNote = async (noteData) => {
+  // noteData: { title, content, user_id? }
+  const payload = { ...noteData, user_id: 1 }; // user_id temporal
+  const response = await fetch(`${API_URL}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response, "crear la nota");
+};
+
+// Actualizar una nota existente
+export const updateNote = async (id, noteData) => {
+  const payload = { ...noteData, user_id: 1 };
+  const response = await fetch(`${API_URL}/notes/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse(response, "actualizar la nota");
+};
+
+// (Opcional) Eliminar una nota
+export const deleteNote = async (id) => {
+  const response = await fetch(`${API_URL}/notes/${id}`, {
+    method: "DELETE",
+  });
+  return handleResponse(response, "eliminar la nota");
 };
