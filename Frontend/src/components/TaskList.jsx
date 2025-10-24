@@ -1,6 +1,6 @@
 // Importamos hooks y funciones del servicio
 import { useEffect, useState } from "react";
-import { getTasks } from "../services/api";
+import { getTasks, deleteTask } from "../services/api";
 import TaskForm from "./TaskForm";
 
 // Componente principal que muestra la lista de tareas
@@ -11,7 +11,7 @@ const TaskList = () => {
   const [error, setError] = useState(null);      // Estado de error
   const [editingTask, setEditingTask] = useState(null); // Tarea en edición
 
-  // Función para obtener tareas desde el backend
+  // Obtener tareas desde el backend
   const fetchTasks = async () => {
     try {
       const data = await getTasks();
@@ -20,6 +20,18 @@ const TaskList = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+    // Eliminar tarea
+  const handleDelete = async (id) => {
+    if (!confirm("¿Eliminar esta tarea?")) return;
+    try {
+      await deleteTask(id);
+      await fetchTasks();
+      if (editingTask && editingTask.task_id === id) setEditingTask(null);
+    } catch (err) {
+      alert("Error eliminando tarea: " + err.message);
     }
   };
 
@@ -65,6 +77,13 @@ const TaskList = () => {
                 >
                   ✏️ Editar
                 </button>
+
+                <button
+                  onClick={() => handleDelete(task_id)}
+                  style={styles.deleteButton}
+                >
+                  🗑️ Eliminar
+                </button>
               </div>
             </li>
           ))}
@@ -109,6 +128,18 @@ const styles = {
     border: "none",
     padding: "0.4rem 0.8rem",
     borderRadius: "6px",
+    fontWeight: "bold",
+    cursor: "pointer",
+    fontSize: "0.9rem",
+    transition: "background-color 0.2s ease, transform 0.1s ease",
+  },
+    deleteButton: {
+    backgroundColor: "#ff6b6b",
+    color: "white",
+    border: "none",
+    padding: "0.4rem 0.8rem",
+    borderRadius: "6px",
+    fontWeight: "bold",
     cursor: "pointer",
     fontSize: "0.9rem",
     transition: "background-color 0.2s ease, transform 0.1s ease",
