@@ -29,7 +29,6 @@ export const createTask = async (taskData) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload), // Convertimos a JSON
   });
-
   return handleResponse(response, "crear la tarea");
 };
 
@@ -42,8 +41,14 @@ export const updateTask = async (id, taskData) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-
   return handleResponse(response, "actualizar la tarea");
+};
+
+// (Opcional) Eliminar una tarea (DELETE)
+export const deleteTask = async (id) => {
+  const response = await fetch(`${API_URL}/tasks/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Error al eliminar la tarea");
+  return response.json();
 };
 
 
