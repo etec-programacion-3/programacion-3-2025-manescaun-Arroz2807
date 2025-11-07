@@ -53,6 +53,7 @@ const TaskList = () => {
         cancelEdit={() => setEditingTask(null)} // Cancela edición
       />
 
+
       <h2 style={styles.title}>Lista de Tareas</h2>
 
       {/* Si no hay tareas, se muestra un mensaje */}

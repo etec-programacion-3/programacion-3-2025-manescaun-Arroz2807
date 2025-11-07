@@ -1,120 +1,107 @@
-// Importamos las herramientas de enrutamiento desde React Router
+// --- Importamos dependencias principales ---
 import { BrowserRouter as Router, Routes, Route, Link, Navigate } from "react-router-dom";
+import { useState } from "react";
 
-// Importamos los componentes de la aplicación
+// --- Importamos componentes ---
 import TaskList from "./components/TaskList";
 import NotesPage from "./components/NotesPage";
+import LoginPage from "./components/LoginPage";
+import RegisterPage from "./components/RegisterPage";
 
-// Componente principal de la aplicación
+// --- Componente principal ---
 export default function App() {
+  // Estado global para almacenar al usuario logueado
+  const [user, setUser] = useState(() => JSON.parse(localStorage.getItem("user")) || null);
+
+  // --- Función: manejar inicio de sesión ---
+  const handleLogin = (userData) => {
+    setUser(userData); // Guardamos datos del usuario en memoria
+    localStorage.setItem("user", JSON.stringify(userData)); // También en almacenamiento local
+  };
+
+  // --- Función: manejar cierre de sesión ---
+  const handleLogout = () => {
+    setUser(null); // Borramos el usuario del estado
+    localStorage.removeItem("user"); // Eliminamos del localStorage
+  };
+
+  // --- Si no hay usuario logueado, mostrar solo login y registro ---
+  if (!user) {
+    return (
+      <Router>
+        <Routes>
+          {/* Página principal → Login */}
+          <Route path="/" element={<LoginPage onLogin={handleLogin} />} />
+
+          {/* Registro de usuario */}
+          <Route
+            path="/register"
+            element={<RegisterPage onRegister={() => (window.location.href = "/")} />}
+          />
+
+          {/* Redirección por defecto si intenta ir a otra ruta sin loguearse */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    );
+  }
+
+  // --- Si el usuario está logueado, mostramos la app completa ---
   return (
-    // Envolvemos toda la app en un Router para habilitar la navegación entre rutas
     <Router>
       <div style={styles.appContainer}>
-        {/* --- Estructura general en forma de tabla --- */}
-        <table style={styles.layoutTable}>
-          <thead>
-            <tr style={styles.navbarRow}>
-              {/* --- Columna izquierda: título principal --- */}
-              <th style={styles.navCellLeft}>
-                <h1 style={styles.title}>Gestor de Tareas</h1>
-              </th>
+        {/* --- Barra de navegación --- */}
+        <div style={styles.navbar}>
+          <h1>Gestor de Tareas</h1>
+          <div>
+            {/* Enlaces de navegación */}
+            <Link to="/tasks" style={styles.navButton}>🗒️ Tareas</Link>
+            <Link to="/notes" style={styles.navButton}>📘 Apuntes</Link>
 
-              {/* --- Columna central vacía (espaciado o futuro contenido) --- */}
-              <th style={styles.navCellCenter}></th>
+            {/* Botón para cerrar sesión */}
+            <button onClick={handleLogout} style={styles.logoutButton}>🚪 Salir</button>
+          </div>
+        </div>
 
-              {/* --- Columna derecha: menú de navegación --- */}
-              <th style={styles.navCellRight}>
-                <ul style={styles.navMenu}>
-                  {/* Botón para ir a la vista de tareas */}
-                  <li>
-                    <Link to="/tasks" style={styles.navButton}>
-                      🗒️ Tareas
-                    </Link>
-                  </li>
-                  {/* Botón para ir a la vista de apuntes */}
-                  <li>
-                    <Link to="/notes" style={styles.navButton}>
-                      📘 Apuntes
-                    </Link>
-                  </li>
-                </ul>
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr>
-              {/* --- Contenido principal (ocupa las 3 columnas) --- */}
-              <td colSpan="3" style={styles.mainContent}>
-                <Routes>
-                  {/* Redirección automática al iniciar en "/" hacia "/tasks" */}
-                  <Route path="/" element={<Navigate to="/tasks" />} />
-                  {/* Página de lista de tareas */}
-                  <Route path="/tasks" element={<TaskList />} />
-                  {/* Página de apuntes: lista (izq) + editor (derecha) */}
-                  <Route path="/notes" element={<NotesPage />} />
-                </Routes>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        {/* --- Rutas internas (solo disponibles logueado) --- */}
+        <Routes>
+          <Route path="/" element={<Navigate to="/tasks" />} />
+          <Route path="/tasks" element={<TaskList user={user} />} />
+          <Route path="/notes" element={<NotesPage user={user} />} />
+        </Routes>
       </div>
     </Router>
   );
 }
 
-// --- Estilos CSS en formato objeto ---
+// --- Estilos globales ---
 const styles = {
   appContainer: {
-    fontFamily: "Inter, Arial, sans-serif", // Fuente general
-    backgroundColor: "#3e3e42ff",           // Fondo gris oscuro
-    minHeight: "100vh",                     // Ocupa toda la pantalla
-    color: "white",                         // Texto blanco
+    backgroundColor: "#3e3e42ff",  // Fondo gris oscuro
+    minHeight: "100vh",            // Pantalla completa
+    color: "white",                // Texto blanco
   },
-  layoutTable: {
-    width: "110%",                          // Ancho de la tabla
-    borderCollapse: "collapse",             // Sin separación entre celdas
-  },
-  navbarRow: {
-    backgroundColor: "#1E3A8A",             // Azul del encabezado
-    height: "80px",
-    boxShadow: "0 2px 6px rgba(0,0,0,0.1)", // Sombra inferior
-  },
-  navCellLeft: {
-    textAlign: "left",
-    paddingLeft: "2rem",
-    width: "50%",
-  },
-  navCellRight: {
-    textAlign: "right",
-    paddingRight: "2rem",
-    width: "50%",
-  },
-  title: {
-    fontSize: "2rem",
-    fontWeight: "bold",
-    margin: 4,
-  },
-  navMenu: {
-    listStyle: "none",          // Quita los puntos de lista
-    display: "flex",            // Los botones se alinean en fila
-    justifyContent: "flex-center",
-    gap: "1.25rem",             // Espaciado entre botones
-    margin: 2,
-    padding: 2,
+  navbar: {
+    backgroundColor: "#1E3A8A",    // Azul principal
+    padding: "1rem",
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   navButton: {
-    backgroundColor: "#5e5b5bff",           // Fondo gris medio
-    color: "#ffffffff",                     // Texto blanco
-    padding: "0.75rem 0.75rem",
-    borderRadius: "10px",                   // Bordes redondeados
-    textDecoration: "none",                 // Sin subrayado
-    fontWeight: "600",                      // Texto en negrita
-    transition: "background-color 0.2s ease, transform 0.1s ease",
+    background: "#5e5b5bff",       // Fondo gris
+    color: "white",
+    padding: "0.5rem 1rem",
+    borderRadius: "8px",
+    textDecoration: "none",
+    marginRight: "0.5rem",
   },
-  mainContent: {
-    padding: "2rem",                        // Espaciado interno
-    backgroundColor: "#3e3e42ff",           // Fondo del cuerpo
+  logoutButton: {
+    background: "#ff6b6b",         // Rojo para "Salir"
+    color: "white",
+    border: "none",
+    padding: "0.5rem 1rem",
+    borderRadius: "8px",
+    cursor: "pointer",
   },
 };
