@@ -84,8 +84,9 @@ export const deleteTask = async (id) => {
 // ==========================================================
 
 // Obtener todas las notas (GET)
-export const getNotes = async () => {
-  const response = await fetch(`${API_URL}/notes`);
+export const getNotes = async (user_id) => {
+  const url = user_id ? `${API_URL}/notes?user_id=${user_id}` : `${API_URL}/notes`;
+  const response = await fetch(url);
   return handleResponse(response, "obtener las notas");
 };
 

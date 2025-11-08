@@ -249,13 +249,17 @@ def create_app():
         Crea una nueva nota (API REST).
         Recibe: { "user_id": ..., "title": "...", "content": "..." }
         """
-        data = request.get_json()
+        data = request.get_json(force=True)
 
         if not data.get("title"):
             return jsonify({"error": "El título es obligatorio"}), 400
+        user_id = data.get("user_id")
+
+        if not user_id:
+            return jsonify({"error": "Falta user_id en la solicitud"}), 400
 
         note = Note(
-            user_id_FK=data["user_id"],
+            user_id_FK=user_id,
             title=data["title"],
             content=data.get("content")
         )
@@ -263,15 +267,22 @@ def create_app():
         db.session.commit()
         return jsonify({"message": "Nota creada", "note_id": note.note_id}), 201
 
+
     @app.route("/api/notes", methods=["GET"])
     def api_get_notes():
-        """Devuelve todas las notas registradas (API REST)."""
-        notes = Note.query.all()
+        """Devuelve las notas del usuario autenticado (API REST)."""
+        user_id = request.args.get("user_id", type=int)
+        if user_id:
+            notes = Note.query.filter_by(user_id_FK=user_id).all()
+        else:
+            notes = Note.query.all()
+
         return jsonify([{
             "note_id": n.note_id,
             "title": n.title,
             "content": n.content,
-            "user_id": n.user_id_FK
+            "user_id": n.user_id_FK,
+            "created_at": getattr(n, "created_at", None)
         } for n in notes])
 
     @app.route("/api/notes/<int:note_id>", methods=["GET"])

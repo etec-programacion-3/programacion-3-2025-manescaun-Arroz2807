@@ -30,47 +30,45 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Evita recargar la página
 
-    // Armamos el objeto con los datos
-    const user = JSON.parse(localStorage.getItem("user"));
-    console.log("👤 Usuario cargado:", user);
+    // ✅ Obtener usuario actual del localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const user_id = storedUser?.user_id || storedUser?.id;
 
+    if (!user_id) {
+      alert("Usuario no autenticado");
+      return;
+    }
+
+    // ✅ Crear objeto de tarea con user_id correcto
     const taskData = {
       title,
       due_date: dueDate,
       description,
-      user_id: user?.id, // 👈 usar "id", no "user_id"
+      user_id, // asignación directa
     };
 
     console.log("📤 Enviando tarea al backend:", taskData);
 
-
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const user_id = user?.user_id || user?.id; // compatibilidad por si cambia estructura
-
-      if (!user_id) {
-        alert("Error: no se pudo obtener el ID del usuario");
-        return;
-      }
-
       if (editingTask) {
         await updateTask(editingTask.task_id, taskData, user_id);
       } else {
         await createTask(taskData, user_id);
       }
 
-
-      // Notificamos al componente padre
+      // 🔔 Notificamos al componente padre
       onTaskSaved();
 
-      // Limpiamos los campos
+      // 🧹 Limpiamos los campos
       setTitle("");
       setDueDate("");
       setDescription("");
     } catch (err) {
+      console.error("❌ Error al guardar tarea:", err);
       alert("Error: " + err.message);
     }
   };
+
 
   // Configuración básica del editor Quill
   const quillModules = {

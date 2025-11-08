@@ -1,3 +1,4 @@
+// src/components/LoginPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -35,17 +36,18 @@ export default function LoginPage({ onLogin }) {
         return;
       }
 
-      // ✅ Crear objeto de usuario
-      const userData = {
-        id: data.user_id,
+      // Creamos objeto user consistente
+      const userObj = {
+        user_id: data.user_id,
         name: data.name,
         email: data.email,
       };
 
-      // ✅ Llamar a onLogin (esto actualiza el estado global en App.jsx)
-      onLogin(userData);
+      // Guardamos en localStorage y avisamos a App
+      localStorage.setItem("user", JSON.stringify(userObj));
+      if (onLogin) onLogin(userObj);
 
-      // ✅ Redirigir a /tasks
+      // Redirigimos a la vista principal (tasks)
       navigate("/tasks");
     } catch (err) {
       console.error("❌ Error de conexión:", err);

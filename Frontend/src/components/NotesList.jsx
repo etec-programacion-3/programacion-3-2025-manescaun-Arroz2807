@@ -11,15 +11,16 @@ Props esperados:
 - selectedNote: nota seleccionada actualmente
 - refreshNotes(): función para refrescar después de cambios
 */
-const NotesList = ({ notes, loading, error, onSelect, selectedNote, refreshNotes }) => {
+const NotesList = ({ notes, loading, error, onSelect, selectedNote, refreshNotes, user }) => {
   // Crear una nota vacía rápida
   const handleCreateEmpty = async () => {
     try {
       // Creamos nota con título por defecto y contenido vacío
-      await createNote({ title: "Nueva nota", content: "" });
+      if (!user || !user.user_id) throw new Error("Usuario no autenticado");
+      await createNote({ title: "Nueva nota", content: "" }, user.user_id);
       await refreshNotes();
     } catch (err) {
-      alert("Error creando nota: " + err.message);
+      alert("Error creando nota: " + (err.message || err));
     }
   };
 
