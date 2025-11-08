@@ -1,19 +1,28 @@
 // Importamos hooks de React
 import { useState, useEffect } from "react";
+// Importamos el editor de texto enriquecido
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
 // Importamos funciones para interactuar con la API
 import { createTask, updateTask } from "../services/api";
 
 // Componente TaskForm: formulario para crear o editar tareas
-export default function TaskForm({ onTaskSaved, editingTask, cancelEdit }) {
+export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId }) {
   // Estados del formulario
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [description, setDescription] = useState(""); // 🆕 Descripción con Quill
 
   // Si llega una tarea para editar, completamos el formulario con sus datos
   useEffect(() => {
     if (editingTask) {
       setTitle(editingTask.title || "");
       setDueDate(editingTask.due_date || "");
+      setDescription(editingTask.description || "");
+    } else {
+      setTitle("");
+      setDueDate("");
+      setDescription("");
     }
   }, [editingTask]);
 
@@ -21,32 +30,58 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit }) {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Evita recargar la página
 
-    // Armamos el objeto con los datos
-    const taskData = { title, due_date: dueDate };
+    // ✅ Obtener usuario actual del localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
+    const user_id = storedUser?.user_id || storedUser?.id;
+
+    if (!user_id) {
+      alert("Usuario no autenticado");
+      return;
+    }
+
+    // ✅ Crear objeto de tarea con user_id correcto
+    const taskData = {
+      title,
+      due_date: dueDate,
+      description,
+      user_id, // asignación directa
+    };
+
+    console.log("📤 Enviando tarea al backend:", taskData);
 
     try {
-      // Si hay una tarea en edición, actualizamos (PUT)
       if (editingTask) {
-        await updateTask(editingTask.task_id, taskData);
+        await updateTask(editingTask.task_id, taskData, user_id);
       } else {
-        // Si no, creamos una nueva (POST)
-        await createTask(taskData);
+        await createTask(taskData, user_id);
       }
 
-      // Notificamos al componente padre para actualizar la lista
+      // 🔔 Notificamos al componente padre
       onTaskSaved();
 
-      // Limpiamos los campos del formulario
+      // 🧹 Limpiamos los campos
       setTitle("");
       setDueDate("");
+      setDescription("");
     } catch (err) {
-      // Mostramos error si algo falla
+      console.error("❌ Error al guardar tarea:", err);
       alert("Error: " + err.message);
     }
   };
 
+
+  // Configuración básica del editor Quill
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, 3, false] }],
+      ["bold", "italic", "underline", "strike"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      ["link"],
+      ["clean"],
+    ],
+  };
+
   return (
-    // Estructura del formulario
     <form onSubmit={handleSubmit} style={styles.form}>
       <h3 style={styles.formTitle}>
         {editingTask ? "✏️ Editar Tarea" : "📝 Nueva Tarea"}
@@ -70,13 +105,22 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit }) {
         style={styles.input}
       />
 
-      {/* Botones de acción */}
+      {/* 🆕 Campo de descripción con ReactQuill */}
+      <label style={styles.label}>Descripción:</label>
+      <ReactQuill
+        theme="snow"
+        value={description}
+        onChange={setDescription}
+        modules={quillModules}
+        style={styles.quill}
+        placeholder="Agregá una descripción detallada..."
+      />
+
       <div style={styles.buttonGroup}>
         <button type="submit" style={styles.saveButton}>
           {editingTask ? "Guardar Cambios" : "Crear Tarea"}
         </button>
 
-        {/* Botón para cancelar la edición */}
         {editingTask && (
           <button type="button" onClick={cancelEdit} style={styles.cancelButton}>
             Cancelar
@@ -87,17 +131,24 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit }) {
   );
 }
 
-// Estilos del formulario
+// Estilos
 const styles = {
   form: {
     backgroundColor: "#464444ff",
     padding: "2.25rem",
     borderRadius: "8px",
     marginBottom: "1.5rem",
-    maxWidth: "400px",
+    maxWidth: "600px",
   },
   formTitle: {
     marginBottom: "1rem",
+    color: "white",
+  },
+  label: {
+    color: "white",
+    fontWeight: "bold",
+    marginBottom: "0.5rem",
+    display: "block",
   },
   input: {
     display: "block",
@@ -106,6 +157,11 @@ const styles = {
     padding: "0.5rem",
     borderRadius: "6px",
     border: "1px solid #ccc",
+  },
+  quill: {
+    marginBottom: "1.5rem",
+    backgroundColor: "white",
+    borderRadius: "6px",
   },
   buttonGroup: {
     display: "flex",

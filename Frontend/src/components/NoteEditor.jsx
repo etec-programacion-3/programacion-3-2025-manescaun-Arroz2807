@@ -1,10 +1,10 @@
 // src/components/NoteEditor.jsx
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import { createNote, updateNote } from "../services/api";
 
-const NoteEditor = ({ note, onSaved }) => {
+const NoteEditor = ({ note, onSaved, user }) => {
   // Local state para los campos del editor
   const [title, setTitle] = useState(note?.title || "");
   const [content, setContent] = useState(note?.content || "");
@@ -20,13 +20,18 @@ const NoteEditor = ({ note, onSaved }) => {
 
   // Guardar (crear o actualizar)
   const handleSave = async () => {
+    if (!user || !user.user_id) {
+      setError("Usuario no autenticado");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     try {
       if (note && note.note_id) {
-        await updateNote(note.note_id, { title, content });
+        await updateNote(note.note_id, { title, content }, user.user_id);
       } else {
-        await createNote({ title, content });
+        await createNote({ title, content }, user.user_id);
       }
       if (onSaved) onSaved();
       alert("Nota guardada correctamente");

@@ -4,7 +4,7 @@ import NotesList from "./NotesList";
 import NoteEditor from "./NoteEditor";
 import { getNotes } from "../services/api";
 
-const NotesPage = () => {
+const NotesPage = ({ user }) => {
   // Lista de notas
   const [notes, setNotes] = useState([]);
   // Nota seleccionada para editar/ver en el editor
@@ -17,7 +17,7 @@ const NotesPage = () => {
   const fetchNotes = async () => {
     setLoading(true);
     try {
-      const data = await getNotes();
+      const data = await getNotes(user?.user_id); // <-- filtramos por user_id
       setNotes(data);
     } catch (err) {
       setError(err.message || "Error al cargar notas");
@@ -27,8 +27,8 @@ const NotesPage = () => {
   };
 
   useEffect(() => {
-    fetchNotes();
-  }, []);
+    if (user && user.user_id) fetchNotes();
+  }, [user]);
 
   // Cuando se guarde/actualice una nota en el editor, refrescamos la lista
   const handleNoteSaved = async () => {
@@ -46,17 +46,17 @@ const NotesPage = () => {
           onSelect={setSelectedNote}
           selectedNote={selectedNote}
           refreshNotes={fetchNotes}
+          user={user}               // <-- paso user
         />
       </aside>
+
 
       {/* Columna derecha: editor (ocupa el resto del ancho) */}
       <section style={styles.editorWrap}>
         <NoteEditor
           note={selectedNote}
-          onSaved={() => {
-            handleNoteSaved();
-            // si querés mantener seleccionada la nota, podés refrescarla aquí
-          }}
+          onSaved={handleNoteSaved}
+          user={user}               // <-- paso user
         />
       </section>
     </div>

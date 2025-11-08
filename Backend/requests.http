@@ -1,13 +1,13 @@
 ### ---------------- USERS ----------------
 
 ### Crear un usuario
-POST http://127.0.0.1:5000/users
+POST http://127.0.0.1:5000/users/register
 Content-Type: application/json
 
 {
   "name": "Nico2",
   "email": "nico2@example.com",
-  "password_hash": "1123456"
+  "password": "1123456"
 }
 
 ### Obtener todos los usuarios

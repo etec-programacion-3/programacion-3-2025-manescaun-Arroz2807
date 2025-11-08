@@ -4,17 +4,18 @@ import { getTasks, deleteTask } from "../services/api";
 import TaskForm from "./TaskForm";
 
 // Componente principal que muestra la lista de tareas
-const TaskList = () => {
+const TaskList = ({ user }) => {
   // Estados locales
   const [tasks, setTasks] = useState([]);        // Lista de tareas
   const [loading, setLoading] = useState(true);  // Estado de carga
   const [error, setError] = useState(null);      // Estado de error
   const [editingTask, setEditingTask] = useState(null); // Tarea en edición
 
-  // Obtener tareas desde el backend
+    // Obtener tareas desde el backend
   const fetchTasks = async () => {
+    setLoading(true);
     try {
-      const data = await getTasks();
+      const data = await getTasks(user?.user_id); // <-- filtramos por user.user_id
       setTasks(data);
     } catch (err) {
       setError(err.message);
@@ -37,8 +38,8 @@ const TaskList = () => {
 
   // useEffect: se ejecuta solo una vez al montar el componente
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (user && user.user_id) fetchTasks();
+  }, [user]);
 
   // Renderizado condicional según estado
   if (loading) return <p>Cargando tareas...</p>;
@@ -52,6 +53,7 @@ const TaskList = () => {
         editingTask={editingTask}         // Pasa tarea seleccionada
         cancelEdit={() => setEditingTask(null)} // Cancela edición
       />
+
 
       <h2 style={styles.title}>Lista de Tareas</h2>
 

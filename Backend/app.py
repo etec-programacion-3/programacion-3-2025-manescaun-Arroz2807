@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, request, jsonify   # Flask y utilidades para crear la API
 from config import Config                   # Configuración central del proyecto
 from datetime import datetime               # Para manejar fechas
@@ -14,6 +12,8 @@ from models import User, Task, Note, File, TaskCollaborator, NoteCollaborator
 from services.calendar_service import CalendarService
 
 from flask_cors import CORS
+import bcrypt  # ✅ Usamos bcrypt directamente
+
 
 def create_app():
     app = Flask(__name__)                 # Crea la aplicación Flask
@@ -23,8 +23,11 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    CORS(app, resources={r"/api/*": {"origins": ["http://localhost:5173", "http://127.0.0.1:5173"]}})
-
+    # Configuración de CORS
+    CORS(app, supports_credentials=True, origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
+    ])
 
 
     @app.route("/")  # Ruta principal de prueba
@@ -32,21 +35,64 @@ def create_app():
         return "Backend funcionando con SQLAlchemy 🚀"
 
     # ---------------- USERS ----------------
-    @app.route("/users", methods=["POST"])
-    def create_user():
+    @app.route("/users/register", methods=["POST"])
+    def register_user():
         """
-        Crea un nuevo usuario en la base de datos.
-        Recibe un JSON con: { "name": "...", "email": "...", "password_hash": "..." }
+        Crea un nuevo usuario con contraseña hasheada usando bcrypt.
+        Recibe JSON: { "name": "...", "email": "...", "password": "..." }
         """
         data = request.get_json()
+
+        # Validaciones básicas
+        if not all(k in data for k in ("name", "email", "password")):
+            return jsonify({"error": "Faltan campos obligatorios"}), 400
+
+        # Verificar si el correo ya está en uso
+        if User.query.filter_by(email=data["email"]).first():
+            return jsonify({"error": "El email ya está registrado"}), 400
+
+        # Hashear la contraseña con bcrypt (nativo)
+        salt = bcrypt.gensalt()
+        hashed_password = bcrypt.hashpw(data["password"].encode("utf-8"), salt).decode("utf-8")
+
+        # Crear usuario
         user = User(
             name=data["name"],
             email=data["email"],
-            password_hash=data["password_hash"]
+            password_hash=hashed_password
         )
         db.session.add(user)
         db.session.commit()
-        return jsonify({"message": "Usuario creado", "user_id": user.user_id}), 201
+
+        return jsonify({"message": "Usuario registrado con éxito", "user_id": user.user_id}), 201
+
+
+    @app.route("/users/login", methods=["POST"])
+    def login_user():
+        """
+        Inicia sesión verificando email y contraseña usando bcrypt.
+        Recibe JSON: { "email": "...", "password": "..." }
+        """
+        data = request.get_json()
+        if not all(k in data for k in ("email", "password")):
+            return jsonify({"error": "Email y contraseña requeridos"}), 400
+
+        user = User.query.filter_by(email=data["email"]).first()
+        if not user:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+
+        # Verificación con bcrypt (nativo)
+        if not bcrypt.checkpw(data["password"].encode("utf-8"), user.password_hash.encode("utf-8")):
+            return jsonify({"error": "Contraseña incorrecta"}), 401
+
+        return jsonify({
+            "message": "Inicio de sesión exitoso",
+            "user_id": user.user_id,
+            "name": user.name,
+            "email": user.email
+        }), 200
+
+
 
     @app.route("/users", methods=["GET"])
     def get_users():
@@ -59,6 +105,7 @@ def create_app():
             "registration_date": u.registration_date
         } for u in users])
 
+
     @app.route("/users/<int:user_id>", methods=["GET"])
     def get_user(user_id):
         """Devuelve un usuario específico por su ID"""
@@ -70,45 +117,57 @@ def create_app():
             "registration_date": user.registration_date
         })
 
+
     # ---------------- TASKS (API REST + Calendario) ----------------
     @app.route("/api/tasks", methods=["POST"])
     def api_create_task():
-        """
-        Crear una nueva tarea (API REST).
-        Si tiene una fecha (due_date), se registra un evento de calendario simulado.
-        """
-        data = request.get_json()
+        """Crear una nueva tarea (API REST)."""
+        try:
+            data = request.get_json(force=True)
+            print("📥 Datos recibidos en /api/tasks:", data)
 
-        if not data.get("title"):
-            return jsonify({"error": "El título es obligatorio"}), 400
+            if not data.get("title"):
+                return jsonify({"error": "El título es obligatorio"}), 400
 
-        due_date = None
-        if data.get("due_date"):
-            try:
-                due_date = datetime.strptime(data["due_date"], "%Y-%m-%d").date()
-            except ValueError:
-                return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
+            user_id = data.get("user_id")
+            if not user_id:
+                return jsonify({"error": "Falta user_id en la solicitud"}), 400
 
-        task = Task(
-            user_id_FK=data["user_id"],
-            title=data["title"],
-            description=data.get("description"),
-            status=data.get("status", "pending"),
-            due_date=due_date
-        )
-        db.session.add(task)
-        db.session.commit()
+            due_date = None
+            if data.get("due_date"):
+                try:
+                    due_date = datetime.strptime(data["due_date"], "%Y-%m-%d").date()
+                except ValueError:
+                    return jsonify({"error": "Formato de fecha inválido. Use YYYY-MM-DD"}), 400
 
-        # Invocar la lógica de calendario si hay fecha
-        if due_date:
-            CalendarService.create_event(task.title, due_date)
+            task = Task(
+                user_id_FK=user_id,
+                title=data["title"],
+                description=data.get("description"),
+                status=data.get("status", "pending"),
+                due_date=due_date
+            )
+            db.session.add(task)
+            db.session.commit()
 
-        return jsonify({"message": "Tarea creada", "task_id": task.task_id}), 201
+            if due_date:
+                CalendarService.create_event(task.title, due_date)
+
+            return jsonify({"message": "Tarea creada", "task_id": task.task_id}), 201
+
+        except Exception as e:
+            print("❌ Error en /api/tasks:", e)
+            return jsonify({"error": str(e)}), 500
+
 
     @app.route("/api/tasks", methods=["GET"])
     def api_get_tasks():
         """Obtener todas las tareas (API REST)."""
-        tasks = Task.query.all()
+        user_id = request.args.get("user_id", type=int)
+        if user_id:
+            tasks = Task.query.filter_by(user_id_FK=user_id).all()
+        else:
+            tasks = Task.query.all()
         return jsonify([{
             "task_id": t.task_id,
             "title": t.title,
@@ -117,6 +176,7 @@ def create_app():
             "due_date": t.due_date.isoformat() if t.due_date else None,
             "user_id": t.user_id_FK
         } for t in tasks])
+
 
     @app.route("/api/tasks/<int:task_id>", methods=["GET"])
     def api_get_task(task_id):
@@ -189,13 +249,17 @@ def create_app():
         Crea una nueva nota (API REST).
         Recibe: { "user_id": ..., "title": "...", "content": "..." }
         """
-        data = request.get_json()
+        data = request.get_json(force=True)
 
         if not data.get("title"):
             return jsonify({"error": "El título es obligatorio"}), 400
+        user_id = data.get("user_id")
+
+        if not user_id:
+            return jsonify({"error": "Falta user_id en la solicitud"}), 400
 
         note = Note(
-            user_id_FK=data["user_id"],
+            user_id_FK=user_id,
             title=data["title"],
             content=data.get("content")
         )
@@ -203,15 +267,22 @@ def create_app():
         db.session.commit()
         return jsonify({"message": "Nota creada", "note_id": note.note_id}), 201
 
+
     @app.route("/api/notes", methods=["GET"])
     def api_get_notes():
-        """Devuelve todas las notas registradas (API REST)."""
-        notes = Note.query.all()
+        """Devuelve las notas del usuario autenticado (API REST)."""
+        user_id = request.args.get("user_id", type=int)
+        if user_id:
+            notes = Note.query.filter_by(user_id_FK=user_id).all()
+        else:
+            notes = Note.query.all()
+
         return jsonify([{
             "note_id": n.note_id,
             "title": n.title,
             "content": n.content,
-            "user_id": n.user_id_FK
+            "user_id": n.user_id_FK,
+            "created_at": getattr(n, "created_at", None)
         } for n in notes])
 
     @app.route("/api/notes/<int:note_id>", methods=["GET"])
