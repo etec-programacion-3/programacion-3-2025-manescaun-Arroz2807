@@ -1,0 +1,171 @@
+/* --- Estética general --- */
+:root {
+  --gray-bg: #1f1f1f;
+  --gray-light: #2a2a2a;
+  --gray-lighter: #3a3a3a;
+  --text-color: #eaeaea;
+  --error-color: #ff6b6b;
+  --button-blue: #2563eb;
+  --button-green: #22c55e;
+  --button-red: #ef4444;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", sans-serif;
+}
+
+body {
+  background-color: var(--gray-bg);
+  color: var(--text-color);
+}
+
+/* --- Layout general de la App --- */
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* --- Barra lateral --- */
+.sidebar {
+  width: 70px;
+  background-color: var(--gray-light);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0;
+  gap: 1rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+}
+
+.sidebar button,
+.sidebar a {
+  background: none;
+  border: none;
+  color: var(--text-color);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.sidebar button:hover,
+.sidebar a:hover {
+  transform: scale(1.2);
+}
+
+.logout-btn {
+  margin-top: auto;
+  color: var(--error-color);
+}
+
+/* --- Contenido principal --- */
+.main-content {
+  margin-left: 70px;
+  flex-grow: 1;
+  padding: 2rem;
+}
+
+/* --- Formularios --- */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+input, textarea {
+  padding: 0.6rem;
+  border: 1px solid var(--gray-lighter);
+  border-radius: 6px;
+  background-color: var(--gray-light);
+  color: white;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* --- Página de Login y Registro --- */
+.auth-page {
+  display: flex;
+  min-height: 100vh;
+  color: white;
+}
+
+.auth-form,
+.auth-right {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* --- Contenido centrado y equilibrado --- */
+.auth-form-content,
+.auth-right-content {
+  width: 80%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* --- Panel derecho --- */
+.auth-right {
+  background-color: var(--gray-light);
+}
+
+.auth-right h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: white;
+}
+
+.auth-right h2 {
+  margin-bottom: 1rem;
+  color: var(--button-w);
+}
+
+.auth-right h3 {
+  margin-bottom: 1rem;
+  color: var(--text-color);
+}
+
+.auth-right p {
+  color: #d0d0d0;
+  line-height: 1.6;
+}
+
+/* --- Errores --- */
+.error {
+  color: var(--error-color);
+  font-weight: bold;
+}
+
+/* --- Botones --- */
+button[title]::after {
+  content: attr(title);
+  position: absolute;
+  background: var(--gray-light);
+  color: white;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  opacity: 0;
+  transform: translateY(-150%);
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  font-size: 0.75rem;
+}
+
+button:hover[title]::after {
+  opacity: 1;
+}
+
+/* --- Listas (Tareas / Notas) --- */
+.list-container {
+  background-color: var(--gray-lighter);
+  border-radius: 8px;
+  padding: 1rem;
+}

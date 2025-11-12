@@ -1,151 +1,47 @@
-// Importamos hooks y funciones del servicio
 import { useEffect, useState } from "react";
-import { getTasks, deleteTask } from "../services/api";
 import TaskForm from "./TaskForm";
+import "../global.css";
 
-// Componente principal que muestra la lista de tareas
-const TaskList = ({ user }) => {
-  // Estados locales
-  const [tasks, setTasks] = useState([]);        // Lista de tareas
-  const [loading, setLoading] = useState(true);  // Estado de carga
-  const [error, setError] = useState(null);      // Estado de error
-  const [editingTask, setEditingTask] = useState(null); // Tarea en edición
+export default function TaskList({ user }) {
+  const [tasks, setTasks] = useState([]);
 
-    // Obtener tareas desde el backend
   const fetchTasks = async () => {
-    setLoading(true);
     try {
-      const data = await getTasks(user?.user_id); // <-- filtramos por user.user_id
+      const res = await fetch(`http://127.0.0.1:5000/api/tasks?user_id=${user.user_id}`);
+      const data = await res.json();
       setTasks(data);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      console.error("Error al cargar tareas:", err);
     }
   };
 
-    // Eliminar tarea
   const handleDelete = async (id) => {
-    if (!confirm("¿Eliminar esta tarea?")) return;
     try {
-      await deleteTask(id);
-      await fetchTasks();
-      if (editingTask && editingTask.task_id === id) setEditingTask(null);
+      await fetch(`http://127.0.0.1:5000/api/tasks/${id}`, { method: "DELETE" });
+      fetchTasks();
     } catch (err) {
-      alert("Error eliminando tarea: " + err.message);
+      console.error("Error al eliminar tarea:", err);
     }
   };
 
-  // useEffect: se ejecuta solo una vez al montar el componente
   useEffect(() => {
-    if (user && user.user_id) fetchTasks();
-  }, [user]);
-
-  // Renderizado condicional según estado
-  if (loading) return <p>Cargando tareas...</p>;
-  if (error) return <p>Error: {error}</p>;
+    fetchTasks();
+  }, []);
 
   return (
-    <div style={styles.container}>
-      {/* Formulario para crear o editar tareas */}
-      <TaskForm
-        onTaskSaved={fetchTasks}         // Recarga la lista al guardar
-        editingTask={editingTask}         // Pasa tarea seleccionada
-        cancelEdit={() => setEditingTask(null)} // Cancela edición
-      />
-
-
-      <h2 style={styles.title}>Lista de Tareas</h2>
-
-      {/* Si no hay tareas, se muestra un mensaje */}
-      {tasks.length === 0 ? (
-        <p>No hay tareas registradas.</p>
-      ) : (
-        // Lista de tareas renderizadas
-        <ul style={styles.taskList}>
-          {tasks.map(({ task_id, title, due_date }) => (
-            <li key={task_id} style={styles.taskItem}>
-              <div>
-                <strong>{title}</strong> — {due_date || "Sin fecha"}
-              </div>
-
-              {/* Botón para editar tarea */}
-              <div>
-                <button
-                  onClick={() =>
-                    setEditingTask({ task_id, title, due_date })
-                  }
-                  style={styles.editButton}
-                >
-                  ✏️ Editar
-                </button>
-
-                <button
-                  onClick={() => handleDelete(task_id)}
-                  style={styles.deleteButton}
-                >
-                  🗑️ Eliminar
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="list-container">
+      <h2>Mis tareas</h2>
+      <TaskForm user={user} onTaskAdded={fetchTasks} />
+      <ul>
+        {tasks.length === 0 && <p>No hay tareas aún.</p>}
+        {tasks.map((task) => (
+          <li key={task.id} style={{ marginBottom: "0.75rem" }}>
+            <strong>{task.title}</strong> – {task.due_date ? `Vence: ${task.due_date}` : "Sin fecha"}
+            <div dangerouslySetInnerHTML={{ __html: task.description }} />
+            <button onClick={() => handleDelete(task.id)} title="Eliminar tarea">🗑️</button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
-
-// Estilos visuales
-const styles = {
-  container: {
-    backgroundColor: "#5e5b5bff",
-    padding: "2rem",
-    borderRadius: "12px",
-    boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-    maxWidth: "600px",
-    margin: "0 auto",
-  },
-  title: {
-    color: "#ffffffff",
-    textAlign: "center",
-    marginBottom: "1rem",
-  },
-  taskList: {
-    listStyle: "none",
-    padding: 0,
-    margin: 0,
-  },
-  taskItem: {
-    backgroundColor: "#464444ff",
-    marginBottom: "0.75rem",
-    padding: "0.75rem 1rem",
-    borderRadius: "8px",
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  editButton: {
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    padding: "0.4rem 0.8rem",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "0.9rem",
-    transition: "background-color 0.2s ease, transform 0.1s ease",
-  },
-    deleteButton: {
-    backgroundColor: "#ff6b6b",
-    color: "white",
-    border: "none",
-    padding: "0.4rem 0.8rem",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-    fontSize: "0.9rem",
-    transition: "background-color 0.2s ease, transform 0.1s ease",
-  },
-};
-
-export default TaskList;
+}
