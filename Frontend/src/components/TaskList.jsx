@@ -1,47 +1,100 @@
 import { useEffect, useState } from "react";
+import { getTasks, deleteTask } from "../services/api";
 import TaskForm from "./TaskForm";
 import "../global.css";
 
 export default function TaskList({ user }) {
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [editingTask, setEditingTask] = useState(null);
 
   const fetchTasks = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://127.0.0.1:5000/api/tasks?user_id=${user.user_id}`);
-      const data = await res.json();
+      const data = await getTasks(user?.user_id);
       setTasks(data);
     } catch (err) {
-      console.error("Error al cargar tareas:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
+    if (!confirm("¿Eliminar esta tarea?")) return;
     try {
-      await fetch(`http://127.0.0.1:5000/api/tasks/${id}`, { method: "DELETE" });
-      fetchTasks();
+      await deleteTask(id);
+      await fetchTasks();
+      if (editingTask && editingTask.task_id === id) setEditingTask(null);
     } catch (err) {
-      console.error("Error al eliminar tarea:", err);
+      alert("Error eliminando tarea: " + err.message);
     }
   };
 
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    if (user && user.user_id) fetchTasks();
+  }, [user]);
 
   return (
-    <div className="list-container">
-      <h2>Mis tareas</h2>
-      <TaskForm user={user} onTaskAdded={fetchTasks} />
-      <ul>
-        {tasks.length === 0 && <p>No hay tareas aún.</p>}
-        {tasks.map((task) => (
-          <li key={task.id} style={{ marginBottom: "0.75rem" }}>
-            <strong>{task.title}</strong> – {task.due_date ? `Vence: ${task.due_date}` : "Sin fecha"}
-            <div dangerouslySetInnerHTML={{ __html: task.description }} />
-            <button onClick={() => handleDelete(task.id)} title="Eliminar tarea">🗑️</button>
-          </li>
-        ))}
-      </ul>
+    <div className="tasks-fullscreen">
+      {/* Panel Izquierdo */}
+      <aside className="tasks-list-panel">
+        <h2>📋 Mis Tareas</h2>
+
+        {loading && <p>Cargando tareas...</p>}
+        {error && <p>Error: {error}</p>}
+        {!loading && tasks.length === 0 && <p>No hay tareas registradas.</p>}
+
+        <ul className="tasks-list-ul">
+          {tasks.map(({ task_id, title, due_date, description }) => (
+            <li className="task-row" key={task_id}>
+              <div className="task-main">
+                <div className="task-header">
+                  <strong className="task-title">{title}</strong>
+                  <span className="task-date"> — {due_date || "Sin fecha"}</span>
+                </div>
+                {description && (
+                  <div
+                    className="task-description"
+                    dangerouslySetInnerHTML={{ __html: description }}
+                  />
+                )}
+              </div>
+
+              <div className="task-actions">
+                <button
+                  onClick={() =>
+                    setEditingTask({ task_id, title, due_date, description })
+                  }
+                  title="Editar tarea"
+                  className="btn-blue"
+                >
+                  ✏️
+                </button>
+
+                <button
+                  onClick={() => handleDelete(task_id)}
+                  title="Eliminar tarea"
+                  className="btn-red"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      {/* Panel Derecho */}
+      <main className="tasks-form-panel">
+        <TaskForm
+          onTaskSaved={fetchTasks}
+          editingTask={editingTask}
+          cancelEdit={() => setEditingTask(null)}
+          userId={user?.user_id}
+        />
+      </main>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export default function LoginPage({ onLogin }) {
 
   return (
     <div className="auth-page">
-      {/* --- Columna izquierda: formulario (40%) --- */}
+      {/* --- Columna izquierda: formulario (60%) --- */}
       <div
         className="auth-form"
         style={{
@@ -101,7 +101,7 @@ export default function LoginPage({ onLogin }) {
         </div>
       </div>
 
-      {/* --- Columna derecha: descripción (60%) --- */}
+      {/* --- Columna derecha: descripción (90%) --- */}
       <div
         className="auth-right"
         style={{

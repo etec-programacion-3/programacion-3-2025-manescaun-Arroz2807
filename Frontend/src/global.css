@@ -4,31 +4,37 @@
   --gray-light: #2a2a2a;
   --gray-lighter: #3a3a3a;
   --text-color: #eaeaea;
+  --muted-text: #c9c9c9;
   --error-color: #ff6b6b;
   --button-blue: #2563eb;
   --button-green: #22c55e;
   --button-red: #ef4444;
+
+  /* ======= Proporciones login/register ======= */
+  --auth-form-width: 45%;
+  --auth-right-width: 55%;
 }
 
+/* Reset / base */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: "Inter", sans-serif;
 }
-
 body {
   background-color: var(--gray-bg);
   color: var(--text-color);
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* --- Layout general de la App --- */
 .app-container {
   display: flex;
   min-height: 100vh;
 }
 
-/* --- Barra lateral --- */
+/* Sidebar lateral del sistema */
 .sidebar {
   width: 70px;
   background-color: var(--gray-light);
@@ -42,7 +48,6 @@ body {
   left: 0;
   bottom: 0;
 }
-
 .sidebar button,
 .sidebar a {
   background: none;
@@ -52,32 +57,115 @@ body {
   cursor: pointer;
   transition: transform 0.2s;
 }
-
 .sidebar button:hover,
 .sidebar a:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
 }
-
 .logout-btn {
   margin-top: auto;
   color: var(--error-color);
 }
 
-/* --- Contenido principal --- */
 .main-content {
   margin-left: 70px;
   flex-grow: 1;
   padding: 2rem;
 }
 
-/* --- Formularios --- */
+/* ===========================================================
+   BLOQUE EXCLUSIVO: LOGIN Y REGISTER (auth)
+   =========================================================== */
+.auth-page {
+  display: flex;
+  height: 100vh;
+}
+
+/* Columna izquierda (formulario) */
+.auth-form {
+  flex: 0 0 var(--auth-form-width);
+  background-color: var(--gray-light);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.auth-form-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-form-content input {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background-color: #1d1d1d;
+  color: white;
+  font-size: 1rem;
+}
+
+.auth-form-content input::placeholder {
+  color: #9aa1a8;
+  font-style: italic;
+}
+
+.auth-form-content button {
+  background-color: var(--button-green);
+  color: white;
+  padding: 0.6rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+.auth-form-content button:hover {
+  background-color: #2ecb63;
+}
+
+/* Columna derecha (descripción) */
+.auth-right {
+  flex: 0 0 var(--auth-right-width);
+  background-color: var(--gray-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+}
+
+.auth-right-content {
+  max-width: 600px;
+  text-align: left;
+}
+
+.auth-right-content h1 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: white;
+}
+
+.auth-right-content h2 {
+  color: var(--text-color);
+  margin-bottom: 1rem;
+}
+
+.auth-right-content p {
+  color: #d0d0d0;
+  line-height: 1.6;
+  font-size: 1.1rem;
+}
+
+/* ===========================================================
+   FORMULARIOS GENERALES (para tareas)
+   =========================================================== */
 form {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
-
-input, textarea {
+input,
+textarea {
   padding: 0.6rem;
   border: 1px solid var(--gray-lighter);
   border-radius: 6px;
@@ -85,87 +173,257 @@ input, textarea {
   color: white;
 }
 
+/* --- Placeholders consistentes --- */
+input::placeholder,
+textarea::placeholder {
+  color: #9aa1a8;
+  font-style: italic;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+}
+
 button {
   cursor: pointer;
 }
 
-/* --- Página de Login y Registro --- */
-.auth-page {
-  display: flex;
-  min-height: 100vh;
+/* Botones */
+.btn-green {
+  background-color: var(--button-green);
   color: white;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
 }
-
-.auth-form,
-.auth-right {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-/* --- Contenido centrado y equilibrado --- */
-.auth-form-content,
-.auth-right-content {
-  width: 80%;
-  max-width: 400px;
-  text-align: center;
-}
-
-/* --- Panel derecho --- */
-.auth-right {
-  background-color: var(--gray-light);
-}
-
-.auth-right h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
+.btn-blue {
+  background-color: var(--button-blue);
   color: white;
+  padding: 0.45rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
+}
+.btn-red {
+  background-color: var(--button-red);
+  color: white;
+  padding: 0.45rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
+}
+.btn-cancel {
+  background-color: var(--gray-lighter);
+  color: white;
+  padding: 0.45rem 0.8rem;
+  border-radius: 6px;
+  border: none;
+  font-weight: 700;
 }
 
-.auth-right h2 {
-  margin-bottom: 1rem;
-  color: var(--button-w);
+/* ------------------------
+   TASKS - fullscreen layout
+   ------------------------ */
+.tasks-fullscreen {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-.auth-right h3 {
+/* Lista de tareas (izquierda) */
+.tasks-list-panel {
+  width: 35%;
+  background: #2f2f2f;
+  padding: 2rem;
+  border-right: 1px solid #262626;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-list-panel h2 {
   margin-bottom: 1rem;
   color: var(--text-color);
+  text-align: left;
 }
 
-.auth-right p {
-  color: #d0d0d0;
+/* Lista */
+.tasks-list-ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+}
+
+/* Fila individual */
+.task-row {
+  background: var(--gray-lighter);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+.task-header {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+}
+.task-title {
+  font-size: 1rem;
+  color: var(--text-color);
+  font-weight: 700;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 52ch;
+}
+
+.task-date {
+  color: var(--muted-text);
+  font-size: 0.9rem;
+}
+
+.task-description {
+  margin-top: 0.65rem;
+  font-size: 0.95rem;
+  color: #d1d5db;
+  line-height: 1.6;
+
+  /* 👇 Salto de línea automático */
+  word-wrap: break-word;
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 52ch;
+}
+
+.task-description ol,
+.task-description ul {
+  margin: 0.35rem 0 0.35rem 1.2rem;
+  padding-left: 0.6rem;
+}
+.task-description ol {
+  list-style-type: decimal;
+}
+.task-description ul {
+  list-style-type: disc;
+}
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+/* Panel del formulario (derecha) */
+.tasks-form-panel {
+  width: 30%;
+  padding: 2rem;
+  background: var(--gray-bg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* -------------------------
+   ReactQuill Dark Styling
+   ------------------------- */
+.quill-dark-wrapper {
+  background-color: var(--gray-lighter);
+  border: 1px solid var(--gray-light);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Toolbar */
+.quill-dark-wrapper .ql-toolbar {
+  background-color: var(--gray-light);
+  border: none;
+  border-bottom: 1px solid var(--gray-lighter);
+  padding: 6px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+/* Íconos blancos sin fondo */
+.quill-dark-wrapper .ql-toolbar button,
+.quill-dark-wrapper .ql-toolbar .ql-picker-label,
+.quill-dark-wrapper .ql-toolbar .ql-picker-item {
+  color: white !important;
+  background: none !important;
+  border: none !important;
+  opacity: 1;
+}
+.quill-dark-wrapper .ql-toolbar button:hover,
+.quill-dark-wrapper .ql-toolbar .ql-picker-label:hover {
+  color: #60a5fa !important;
+}
+
+/* Íconos SVG visibles */
+.quill-dark-wrapper .ql-stroke {
+  stroke: white !important;
+}
+.quill-dark-wrapper .ql-fill {
+  fill: white !important;
+}
+
+/* Editor */
+.quill-dark-wrapper .ql-container {
+  flex-grow: 1;
+  background-color: var(--gray-lighter);
+  color: white;
+  border: none;
+}
+.quill-dark-wrapper .ql-editor {
+  background-color: transparent;
+  color: white;
+  padding: 1rem;
+  font-size: 1rem;
   line-height: 1.6;
 }
 
-/* --- Errores --- */
-.error {
-  color: var(--error-color);
-  font-weight: bold;
-}
-
-/* --- Botones --- */
-button[title]::after {
-  content: attr(title);
-  position: absolute;
-  background: var(--gray-light);
-  color: white;
-  padding: 0.3rem 0.5rem;
-  border-radius: 6px;
-  opacity: 0;
-  transform: translateY(-150%);
-  transition: opacity 0.2s ease;
-  pointer-events: none;
-  font-size: 0.75rem;
-}
-
-button:hover[title]::after {
+/* Placeholder del editor ReactQuill */
+.quill-dark-wrapper .ql-editor.ql-blank::before {
+  color: #9aa1a8;
+  font-style: italic;
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
   opacity: 1;
 }
 
-/* --- Listas (Tareas / Notas) --- */
-.list-container {
-  background-color: var(--gray-lighter);
-  border-radius: 8px;
-  padding: 1rem;
+/* Eliminar fondo de botones activos */
+.quill-dark-wrapper .ql-toolbar button.ql-active {
+  background: none !important;
+  color: #60a5fa !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .tasks-list-panel,
+  .tasks-form-panel {
+    width: 100%;
+  }
+  .tasks-fullscreen {
+    flex-direction: column;
+  }
+
+  .auth-page {
+    flex-direction: column;
+  }
+  .auth-form,
+  .auth-right {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 1.5rem;
+  }
 }
