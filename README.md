@@ -10,6 +10,14 @@
 ---
 
 
+## Descripción del Proyecto
+
+
+
+
+---
+
+
 ## Cómo descargar el proyecto y crear el entrono virtual
 
 
@@ -67,8 +75,9 @@ pip install -r requirements.txt
 
 Ejecutar los siguientes comandos para crear la base de datos y aplicar la primera migración:
 
+*Ejecutar el primer comando solo la primera vez:*
 ```bash
-flask db init      # (solo la primera vez)
+flask db init
 flask db migrate -m "Initial migration"
 flask db upgrade
 ```

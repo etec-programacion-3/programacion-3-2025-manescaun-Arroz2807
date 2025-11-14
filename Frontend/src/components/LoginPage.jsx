@@ -1,6 +1,6 @@
-// src/components/LoginPage.jsx
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../global.css";
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
@@ -22,75 +22,109 @@ export default function LoginPage({ onLogin }) {
       });
 
       const data = await res.json();
-      console.log("📩 Respuesta del backend:", data);
+      if (!res.ok) throw new Error(data.error || "Error al iniciar sesión");
+      if (!data.user_id) throw new Error("Respuesta inválida del servidor");
 
-      if (!res.ok) {
-        setError(data.error || "Error al iniciar sesión");
-        setLoading(false);
-        return;
-      }
-
-      if (!data.user_id) {
-        setError("Respuesta inválida del servidor");
-        setLoading(false);
-        return;
-      }
-
-      // Creamos objeto user consistente
-      const userObj = {
-        user_id: data.user_id,
-        name: data.name,
-        email: data.email,
-      };
-
-      // Guardamos en localStorage y avisamos a App
+      const userObj = { user_id: data.user_id, name: data.name, email: data.email };
       localStorage.setItem("user", JSON.stringify(userObj));
-      if (onLogin) onLogin(userObj);
-
-      // Redirigimos a la vista principal (tasks)
+      onLogin?.(userObj);
       navigate("/tasks");
     } catch (err) {
-      console.error("❌ Error de conexión:", err);
-      setError("Error de conexión con el servidor");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-container">
-      <h2>Iniciar sesión</h2>
-      <form onSubmit={handleLogin}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Ingresando..." : "Iniciar sesión"}
-        </button>
-      </form>
+    <div className="auth-page">
+      {/* --- Columna izquierda: formulario (60%) --- */}
+      <div
+        className="auth-form"
+        style={{
+          flex: "0 0 60%",
+          backgroundColor: "var(--gray-light)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "2rem",
+        }}
+      >
+        <div className="auth-form-content">
+          <form onSubmit={handleLogin}>
+            <h2 style={{ marginBottom: "1rem" }}>Iniciar sesión</h2>
 
-      {error && <p className="error">{error}</p>}
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
 
-      <p>
-        ¿No tienes cuenta?{" "}
-        <span
-          style={{ color: "blue", cursor: "pointer" }}
-          onClick={() => navigate("/register")}
-        >
-          Regístrate aquí
-        </span>
-      </p>
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                backgroundColor: "var(--button-green)",
+                color: "white",
+                padding: "0.6rem",
+                border: "none",
+                borderRadius: "6px",
+                marginTop: "0.5rem",
+                width: "100%",
+              }}
+            >
+              {loading ? "Ingresando..." : "Iniciar sesión"}
+            </button>
+
+            {error && <p className="error">{error}</p>}
+
+            <p style={{ marginTop: "1rem" }}>
+              ¿No tenés cuenta?{" "}
+              <span
+                style={{ color: "var(--button-blue)", cursor: "pointer" }}
+                onClick={() => navigate("/register")}
+              >
+                Registrate aquí
+              </span>
+            </p>
+          </form>
+        </div>
+      </div>
+
+      {/* --- Columna derecha: descripción (90%) --- */}
+      <div
+        className="auth-right"
+        style={{
+          flex: "0 0 90%",
+          backgroundColor: "var(--gray-bg)",
+          display: "flex-right",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "2rem",
+        }}
+      >
+        <div className="auth-right-content" style={{ maxWidth: "5000x", textAlign: "left" }}>
+          <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "white" }}>Flownote</h1>
+          <h2 style={{ color: "var(--text-color)", marginBottom: "1rem" }}>
+            Organizá tu día, simplificá tu vida.
+          </h2>
+          <p style={{ color: "#d0d0d0", lineHeight: "1.6", fontSize: "1.1rem" }}>
+            Tu espacio personal para gestionar tareas y apuntes de forma simple y eficiente.
+            Accedé a tus pendientes, tomá notas y mantené todo sincronizado.
+            Ingresá ahora y empezá a organizarte mejor.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,19 +1,15 @@
-// Importamos hooks de React
+// src/components/TaskForm.jsx
 import { useState, useEffect } from "react";
-// Importamos el editor de texto enriquecido
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
-// Importamos funciones para interactuar con la API
 import { createTask, updateTask } from "../services/api";
+import "../global.css";
 
-// Componente TaskForm: formulario para crear o editar tareas
 export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId }) {
-  // Estados del formulario
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [description, setDescription] = useState(""); // 🆕 Descripción con Quill
+  const [description, setDescription] = useState("");
 
-  // Si llega una tarea para editar, completamos el formulario con sus datos
   useEffect(() => {
     if (editingTask) {
       setTitle(editingTask.title || "");
@@ -26,28 +22,17 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
     }
   }, [editingTask]);
 
-  // Manejo del envío del formulario
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Evita recargar la página
-
-    // ✅ Obtener usuario actual del localStorage
+    e.preventDefault();
     const storedUser = JSON.parse(localStorage.getItem("user"));
-    const user_id = storedUser?.user_id || storedUser?.id;
+    const user_id = userId || storedUser?.user_id || storedUser?.id;
 
     if (!user_id) {
       alert("Usuario no autenticado");
       return;
     }
 
-    // ✅ Crear objeto de tarea con user_id correcto
-    const taskData = {
-      title,
-      due_date: dueDate,
-      description,
-      user_id, // asignación directa
-    };
-
-    console.log("📤 Enviando tarea al backend:", taskData);
+    const taskData = { title, due_date: dueDate, description, user_id };
 
     try {
       if (editingTask) {
@@ -56,10 +41,7 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
         await createTask(taskData, user_id);
       }
 
-      // 🔔 Notificamos al componente padre
-      onTaskSaved();
-
-      // 🧹 Limpiamos los campos
+      if (typeof onTaskSaved === "function") onTaskSaved();
       setTitle("");
       setDueDate("");
       setDescription("");
@@ -69,11 +51,8 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
     }
   };
 
-
-  // Configuración básica del editor Quill
   const quillModules = {
     toolbar: [
-      [{ header: [1, 2, 3, false] }],
       ["bold", "italic", "underline", "strike"],
       [{ list: "ordered" }, { list: "bullet" }],
       ["link"],
@@ -81,108 +60,72 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
     ],
   };
 
-  return (
-    <form onSubmit={handleSubmit} style={styles.form}>
-      <h3 style={styles.formTitle}>
-        {editingTask ? "✏️ Editar Tarea" : "📝 Nueva Tarea"}
-      </h3>
+  const quillFormats = ["bold", "italic", "underline", "strike", "list", "bullet", "link"];
 
-      {/* Campo de texto para el título */}
+  return (
+    <form onSubmit={handleSubmit} className="taskform-root">
+      <h2 style={{ marginBottom: "1rem" }}>
+        {editingTask ? "✏️ Editar Tarea" : "📝 Nueva Tarea"}
+      </h2>
+
+      {/* Campo Título con límite y asterisco */}
+      <label
+        style={{
+          color: "var(--text-color)",
+          fontWeight: "1000",
+          marginBottom: "0.5rem",
+        }}
+      >
+        Título de la tarea <span style={{ color: "var(--error-color)" }}>*</span>
+      </label>
+
       <input
         type="text"
-        placeholder="Título de la tarea"
+        placeholder="Título de la tarea (máx. 35 caracteres)"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
-        style={styles.input}
+        maxLength={35}
       />
 
-      {/* Campo de fecha */}
       <input
         type="date"
         value={dueDate}
         onChange={(e) => setDueDate(e.target.value)}
-        style={styles.input}
       />
 
-      {/* 🆕 Campo de descripción con ReactQuill */}
-      <label style={styles.label}>Descripción:</label>
-      <ReactQuill
-        theme="snow"
-        value={description}
-        onChange={setDescription}
-        modules={quillModules}
-        style={styles.quill}
-        placeholder="Agregá una descripción detallada..."
-      />
+      <label
+        style={{
+          color: "var(--text-color)",
+          fontWeight: "500",
+          marginTop: "0.5rem",
+        }}
+      >
+        Descripción:
+      </label>
 
-      <div style={styles.buttonGroup}>
-        <button type="submit" style={styles.saveButton}>
-          {editingTask ? "Guardar Cambios" : "Crear Tarea"}
+      <div className="quill-dark-wrapper">
+        <ReactQuill
+          theme="snow"
+          value={description}
+          onChange={setDescription}
+          modules={quillModules}
+          formats={quillFormats}
+          placeholder="Agregá una descripción detallada..."
+        />
+      </div>
+
+      <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
+        <button type="submit" className="btn-green">
+          {editingTask ? "💾 Guardar Cambios" : "➕ Crear Tarea"}
         </button>
 
         {editingTask && (
-          <button type="button" onClick={cancelEdit} style={styles.cancelButton}>
-            Cancelar
+          <button type="button" onClick={cancelEdit} className="btn-cancel">
+            ❌ Cancelar
           </button>
         )}
       </div>
     </form>
   );
 }
-
-// Estilos
-const styles = {
-  form: {
-    backgroundColor: "#464444ff",
-    padding: "2.25rem",
-    borderRadius: "8px",
-    marginBottom: "1.5rem",
-    maxWidth: "600px",
-  },
-  formTitle: {
-    marginBottom: "1rem",
-    color: "white",
-  },
-  label: {
-    color: "white",
-    fontWeight: "bold",
-    marginBottom: "0.5rem",
-    display: "block",
-  },
-  input: {
-    display: "block",
-    width: "100%",
-    marginBottom: "1rem",
-    padding: "0.5rem",
-    borderRadius: "6px",
-    border: "1px solid #ccc",
-  },
-  quill: {
-    marginBottom: "1.5rem",
-    backgroundColor: "white",
-    borderRadius: "6px",
-  },
-  buttonGroup: {
-    display: "flex",
-    gap: "0.5rem",
-  },
-  saveButton: {
-    backgroundColor: "#1E3A8A",
-    color: "white",
-    border: "none",
-    padding: "0.5rem 1rem",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-  cancelButton: {
-    backgroundColor: "grey",
-    color: "white",
-    border: "none",
-    padding: "0.5rem 1rem",
-    borderRadius: "6px",
-    fontWeight: "bold",
-    cursor: "pointer",
-  },
-};
