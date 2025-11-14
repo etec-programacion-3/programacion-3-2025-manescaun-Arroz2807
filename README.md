@@ -12,7 +12,13 @@
 
 ## Descripción del Proyecto
 
+Este proyecto es una aplicación web desarrollada como parte de Programación 3. Está compuesta por un Backend en Python con Flask y un Frontend en React, organizados en una arquitectura cliente-servidor.
 
+El sistema permite gestionar usuarios, tareas y notas, integrando autenticación, almacenamiento estructurado y una interfaz moderna con opciones de edición enriquecida.
+
+El backend utiliza Flask, SQLAlchemy y Flask-Migrate para manejar la lógica del servidor, las API REST y la base de datos SQLite. En el frontend, React implementa una interfaz dinámica que incluye un editor de notas con encabezados, gestión de tareas y controles interactivos.
+
+En conjunto, la aplicación funciona como una plataforma intuitiva para crear, organizar y administrar información personal.
 
 
 ---
