@@ -85,8 +85,8 @@ body {
   flex: 0 0 var(--auth-form-width);
   background-color: var(--gray-light);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   padding: 2rem;
 }
 
@@ -94,6 +94,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  width: 100%;
 }
 
 .auth-form-content input {
@@ -129,8 +130,8 @@ body {
   flex: 0 0 var(--auth-right-width);
   background-color: var(--gray-bg);
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: flex-start;
+  align-items: flex-start;
   padding: 2rem;
 }
 
@@ -163,6 +164,8 @@ form {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  align-items: flex-start;
+  width: 100%;
 }
 input,
 textarea {
@@ -171,6 +174,8 @@ textarea {
   border-radius: 6px;
   background-color: var(--gray-light);
   color: white;
+  width: 100%;
+  max-width: 100%;
 }
 
 /* --- Placeholders consistentes --- */
@@ -281,7 +286,7 @@ button {
   word-wrap: break-word;
   white-space: normal;
   overflow-wrap: break-word;
-  max-width: 52ch;
+  max-width: 100%;
 }
 
 .task-date {
@@ -294,12 +299,10 @@ button {
   font-size: 0.95rem;
   color: #d1d5db;
   line-height: 1.6;
-
-  /* 👇 Salto de línea automático */
   word-wrap: break-word;
   white-space: normal;
   overflow-wrap: break-word;
-  max-width: 52ch;
+  max-width: 100%;
 }
 
 .task-description ol,
@@ -322,7 +325,7 @@ button {
 
 /* Panel del formulario (derecha) */
 .tasks-form-panel {
-  width: 30%;
+  width: 45%;
   padding: 2rem;
   background: var(--gray-bg);
   overflow-y: auto;
@@ -339,9 +342,10 @@ button {
   border: 1px solid var(--gray-light);
   border-radius: 8px;
   overflow: hidden;
-  flex-grow: 1;
   display: flex;
   flex-direction: column;
+  width: 100%;
+  max-height: 70vh;
 }
 
 /* Toolbar */
@@ -355,33 +359,36 @@ button {
   justify-content: flex-start;
 }
 
-/* Íconos blancos sin fondo */
+/* Íconos y picker */
 .quill-dark-wrapper .ql-toolbar button,
 .quill-dark-wrapper .ql-toolbar .ql-picker-label,
 .quill-dark-wrapper .ql-toolbar .ql-picker-item {
-  color: white !important;
-  background: none !important;
+  color: var(--text-color) !important;
+  background: var(--gray-light) !important;
   border: none !important;
   opacity: 1;
 }
-.quill-dark-wrapper .ql-toolbar button:hover,
-.quill-dark-wrapper .ql-toolbar .ql-picker-label:hover {
-  color: #60a5fa !important;
+
+/* Dropdown de encabezados */
+.quill-dark-wrapper .ql-toolbar .ql-picker-options {
+  background-color: var(--gray-lighter) !important;
+  color: var(--text-color) !important;
+  border-radius: 6px;
+  border: 1px solid var(--gray-light);
+}
+.quill-dark-wrapper .ql-toolbar .ql-picker-item:hover {
+  background-color: var(--gray-light) !important;
+  color: var(--text-color) !important;
 }
 
-/* Íconos SVG visibles */
-.quill-dark-wrapper .ql-stroke {
-  stroke: white !important;
-}
-.quill-dark-wrapper .ql-fill {
-  fill: white !important;
-}
+/* SVG */
+.quill-dark-wrapper .ql-stroke { stroke: white !important; }
+.quill-dark-wrapper .ql-fill { fill: white !important; }
 
 /* Editor */
 .quill-dark-wrapper .ql-container {
   flex-grow: 1;
-  background-color: var(--gray-lighter);
-  color: white;
+  background-color: transparent;
   border: none;
 }
 .quill-dark-wrapper .ql-editor {
@@ -390,9 +397,13 @@ button {
   padding: 1rem;
   font-size: 1rem;
   line-height: 1.6;
+  min-height: 150px;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: pre-wrap;
 }
 
-/* Placeholder del editor ReactQuill */
+/* Placeholder editor */
 .quill-dark-wrapper .ql-editor.ql-blank::before {
   color: #9aa1a8;
   font-style: italic;
@@ -401,7 +412,7 @@ button {
   opacity: 1;
 }
 
-/* Eliminar fondo de botones activos */
+/* Botones activos */
 .quill-dark-wrapper .ql-toolbar button.ql-active {
   background: none !important;
   color: #60a5fa !important;
@@ -416,7 +427,6 @@ button {
   .tasks-fullscreen {
     flex-direction: column;
   }
-
   .auth-page {
     flex-direction: column;
   }

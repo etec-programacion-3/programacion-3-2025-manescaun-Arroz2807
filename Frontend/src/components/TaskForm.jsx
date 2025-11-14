@@ -117,12 +117,12 @@ export default function TaskForm({ onTaskSaved, editingTask, cancelEdit, userId 
 
       <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem" }}>
         <button type="submit" className="btn-green">
-          {editingTask ? "Guardar Cambios" : "Crear Tarea"}
+          {editingTask ? "💾 Guardar Cambios" : "➕ Crear Tarea"}
         </button>
 
         {editingTask && (
           <button type="button" onClick={cancelEdit} className="btn-cancel">
-            Cancelar
+            ❌ Cancelar
           </button>
         )}
       </div>

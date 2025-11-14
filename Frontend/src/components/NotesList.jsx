@@ -1,44 +1,123 @@
-import { useEffect, useState } from "react";
+// src/components/NotesList.jsx
+import React from "react";
+import { deleteNote } from "../services/api";
 import "../global.css";
 
-export default function NotesList({ user, onSelectNote }) {
-  const [notes, setNotes] = useState([]);
-
-  const fetchNotes = async () => {
-    try {
-      const res = await fetch(`http://127.0.0.1:5000/api/notes?user_id=${user.user_id}`);
-      const data = await res.json();
-      setNotes(data);
-    } catch (err) {
-      console.error("Error al cargar notas:", err);
-    }
-  };
-
+/*
+Props esperados:
+- notes: array de notas
+- loading: boolean
+- error: string | null
+- onSelect(note): función para seleccionar una nota
+- onCreateNew(): función para crear nueva nota vacía
+- selectedNote: nota seleccionada actualmente
+- refreshNotes(): función para refrescar después de cambios
+- user: objeto con user_id
+*/
+const NotesList = ({ notes, loading, error, onSelect, onCreateNew, selectedNote, refreshNotes, user }) => {
   const handleDelete = async (id) => {
+    if (!confirm("¿Eliminar esta nota?")) return;
     try {
-      await fetch(`http://127.0.0.1:5000/api/notes/${id}`, { method: "DELETE" });
-      fetchNotes();
+      await deleteNote(id);
+      await refreshNotes();
+      // si la nota borrada era la seleccionada, limpiamos selección
+      if (selectedNote && selectedNote.note_id === id) onSelect(null);
     } catch (err) {
-      console.error("Error al eliminar nota:", err);
+      alert("Error eliminando nota: " + err.message);
     }
   };
-
-  useEffect(() => {
-    fetchNotes();
-  }, []);
 
   return (
-    <div style={{ flex: 1 }}>
-      {notes.length === 0 && <p>No hay apuntes todavía.</p>}
-      <ul>
-        {notes.map((note) => (
-          <li key={note.id} style={{ marginBottom: "0.75rem" }}>
-            <strong>{note.title}</strong>
-            <button onClick={() => onSelectNote(note)} title="Editar nota">✏️</button>
-            <button onClick={() => handleDelete(note.id)} title="Eliminar nota">🗑️</button>
-          </li>
-        ))}
-      </ul>
+    <div className="tasks-list-panel">
+      <h2>📓 Mis Apuntes</h2>
+
+      <div style={{ marginBottom: "1rem" }}>
+        <button 
+          className="btn-green"
+          onClick={onCreateNew}
+          title="Crear nueva nota"
+          style={{ width: "100%" }}
+        >
+          ➕ Nueva nota
+        </button>
+      </div>
+
+      {loading && <p>Cargando notas...</p>}
+      {error && <p>Error: {error}</p>}
+      {!loading && !error && notes.length === 0 && (
+        <div style={{ textAlign: "center", padding: "1rem" }}>
+          <p style={{ marginBottom: "1rem" }}>No hay notas aún.</p>
+        </div>
+      )}
+
+      {!loading && !error && notes.length > 0 && (
+        <ul className="tasks-list-ul">
+          {notes.map((n) => (
+            <li
+              key={n.note_id}
+              className="task-row"
+              style={{
+                cursor: "pointer",
+                ...(selectedNote && selectedNote.note_id === n.note_id 
+                  ? { outline: "2px solid #60a5fa", backgroundColor: "#424242" } 
+                  : {}),
+              }}
+            >
+              <div 
+                className="task-main"
+                onClick={() => onSelect(n)}
+                style={{ flex: 1 }}
+              >
+                <div className="task-header">
+                  <strong className="task-title">{n.title || "Sin título"}</strong>
+                  <span className="task-date">
+                    {n.created_at ? ` — ${new Date(n.created_at).toLocaleDateString()}` : ""}
+                  </span>
+                </div>
+                {n.content && (
+                  <div 
+                    className="task-description"
+                    style={{
+                      maxHeight: "3rem",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                    dangerouslySetInnerHTML={{ 
+                      __html: n.content.substring(0, 100) + (n.content.length > 100 ? "..." : "") 
+                    }}
+                  />
+                )}
+              </div>
+
+              <div className="task-actions">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(n);
+                  }}
+                  title="Editar nota"
+                  className="btn-blue"
+                >
+                  ✏️
+                </button>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(n.note_id);
+                  }}
+                  title="Eliminar nota"
+                  className="btn-red"
+                >
+                  🗑️
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
-}
+};
+
+export default NotesList;
