@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../global.css";
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -15,7 +17,7 @@ export default function LoginPage({ onLogin }) {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/users/login", {
+      const res = await fetch(`${BACKEND_URL}/users/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),

@@ -12,7 +12,7 @@ from models import User, Task, Note, File, TaskCollaborator, NoteCollaborator
 from services.calendar_service import CalendarService
 
 from flask_cors import CORS
-import bcrypt  # ✅ Usamos bcrypt directamente
+import bcrypt
 
 
 def create_app():
@@ -23,16 +23,13 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
 
-    # Configuración de CORS
-    CORS(app, supports_credentials=True, origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173"
-    ])
+    # Configuración de CORS con orígenes dinámicos desde config
+    CORS(app, supports_credentials=True, origins=Config.CORS_ORIGINS)
 
-
-    @app.route("/")  # Ruta principal de prueba
+    @app.route("/")
     def index():
-        return "Backend funcionando con SQLAlchemy 🚀"
+        return "Backend funcionando con SQLAlchemy"
+
 
     # ---------------- USERS ----------------
     @app.route("/users/register", methods=["POST"])

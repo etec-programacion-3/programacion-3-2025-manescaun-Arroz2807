@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../global.css";
 
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+
 export default function RegisterPage({ onRegister }) {
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", email: "", pass1: "", pass2: "" });
@@ -22,7 +24,7 @@ export default function RegisterPage({ onRegister }) {
     }
 
     try {
-      const res = await fetch("http://127.0.0.1:5000/users/register", {
+      const res = await fetch(`${BACKEND_URL}/users/register"`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
