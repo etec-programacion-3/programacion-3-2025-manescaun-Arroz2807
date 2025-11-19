@@ -2,8 +2,11 @@
 // 🌐 CONFIGURACIÓN GENERAL DE API
 // ==========================================================
 
-// Definimos la URL base del backend principal (rutas /api para tareas y notas)
-const API_URL = "http://127.0.0.1:5000/api";
+// Obtener la URL del backend desde variables de entorno
+const BACKEND_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+const API_URL = `${BACKEND_URL}/api`;
+
+console.log("🔗 Backend URL configurada:", BACKEND_URL);
 
 // Función auxiliar para manejar respuestas HTTP y errores
 const handleResponse = async (response, action) => {
@@ -20,7 +23,7 @@ const handleResponse = async (response, action) => {
 
 // Registrar un nuevo usuario
 export const registerUser = async (userData) => {
-  const response = await fetch("http://127.0.0.1:5000/users/register", {
+  const response = await fetch(`${BACKEND_URL}/users/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(userData),
@@ -30,7 +33,7 @@ export const registerUser = async (userData) => {
 
 // Iniciar sesión de usuario
 export const loginUser = async (credentials) => {
-  const response = await fetch("http://127.0.0.1:5000/users/login", {
+  const response = await fetch(`${BACKEND_URL}/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(credentials),
@@ -42,28 +45,23 @@ export const loginUser = async (credentials) => {
 // 🗒️ SECCIÓN: TAREAS (CRUD API REST)
 // ==========================================================
 
-// ==========================================================
-// ✅ MODIFICACIÓN FASE 3:
-// Ahora `getTasks` recibe el `user_id` como argumento, y lo envía al backend
-// mediante un parámetro de consulta (?user_id=), para obtener SOLO las tareas
-// pertenecientes al usuario autenticado.
-// ==========================================================
+// Listar las tareas
 export const getTasks = async (user_id) => {
   const response = await fetch(`${API_URL}/tasks?user_id=${user_id}`);
   return handleResponse(response, "obtener las tareas del usuario");
 };
 
-// ✅ (Fase 2) Crear una nueva tarea asociada a un usuario
+// Crear una tarea
 export const createTask = async (taskData, user_id) => {
   const response = await fetch(`${API_URL}/tasks`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...taskData, user_id }), // combinamos datos de tarea + id de usuario
+    body: JSON.stringify({ ...taskData, user_id }),
   });
   return handleResponse(response, "crear la tarea");
 };
 
-// Actualizar una tarea existente (PUT)
+// Actualizar una tarea
 export const updateTask = async (id, taskData, user_id) => {
   const response = await fetch(`${API_URL}/tasks/${id}`, {
     method: "PUT",
@@ -73,7 +71,7 @@ export const updateTask = async (id, taskData, user_id) => {
   return handleResponse(response, "actualizar la tarea");
 };
 
-// Eliminar una tarea (DELETE)
+// Eliminar una tarea
 export const deleteTask = async (id) => {
   const response = await fetch(`${API_URL}/tasks/${id}`, { method: "DELETE" });
   return handleResponse(response, "eliminar la tarea");
@@ -83,14 +81,14 @@ export const deleteTask = async (id) => {
 // 📘 SECCIÓN: NOTAS (CRUD API REST)
 // ==========================================================
 
-// Obtener todas las notas (GET)
+// Listar las notas
 export const getNotes = async (user_id) => {
   const url = user_id ? `${API_URL}/notes?user_id=${user_id}` : `${API_URL}/notes`;
   const response = await fetch(url);
   return handleResponse(response, "obtener las notas");
 };
 
-// Crear una nueva nota (POST)
+// Crear una nota
 export const createNote = async (noteData, user_id) => {
   const response = await fetch(`${API_URL}/notes`, {
     method: "POST",
@@ -100,7 +98,7 @@ export const createNote = async (noteData, user_id) => {
   return handleResponse(response, "crear la nota");
 };
 
-// Actualizar una nota (PUT)
+// Actualizar una nota
 export const updateNote = async (id, noteData, user_id) => {
   const response = await fetch(`${API_URL}/notes/${id}`, {
     method: "PUT",
@@ -110,7 +108,7 @@ export const updateNote = async (id, noteData, user_id) => {
   return handleResponse(response, "actualizar la nota");
 };
 
-// Eliminar una nota (DELETE)
+// Eliminar una nota
 export const deleteNote = async (id) => {
   const response = await fetch(`${API_URL}/notes/${id}`, { method: "DELETE" });
   return handleResponse(response, "eliminar la nota");
