@@ -24,7 +24,7 @@ export default function RegisterPage({ onRegister }) {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/users/register"`, {
+      const res = await fetch(`${BACKEND_URL}/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
