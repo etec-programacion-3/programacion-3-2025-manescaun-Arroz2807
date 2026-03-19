@@ -9,7 +9,6 @@ export default function TaskList({ user }) {
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
 
-  // 🔽 NUEVO: control de desplegables
   const [showPending, setShowPending] = useState(true);
   const [showCompleted, setShowCompleted] = useState(true);
 
@@ -36,7 +35,6 @@ export default function TaskList({ user }) {
     }
   };
 
-  // 🔽 NUEVO: cambiar estado
   const toggleStatus = async (task) => {
     const newStatus = task.status === "completed" ? "pending" : "completed";
 
@@ -53,14 +51,13 @@ export default function TaskList({ user }) {
     }
   };
 
-  // 🔽 NUEVO: detectar vencidas
   const isOverdue = (due_date) => {
     if (!due_date) return false;
     const today = new Date();
     const due = new Date(due_date);
 
-    today.setHours(0,0,0,0);
-    due.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
+    due.setHours(0, 0, 0, 0);
 
     return due < today;
   };
@@ -69,79 +66,123 @@ export default function TaskList({ user }) {
     if (user && user.user_id) fetchTasks();
   }, [user]);
 
-  // 🔽 NUEVO: separar tareas
   const pendingTasks = tasks.filter((t) => t.status !== "completed");
   const completedTasks = tasks.filter((t) => t.status === "completed");
 
-  // 🔽 Render reutilizable (NO rompe nada)
-  const renderTask = ({ task_id, title, due_date, description, status }) => (
-    <li className="task-row" key={task_id}>
-      {/* ✅ NUEVO: checkbox */}
-      <input
-        type="checkbox"
-        checked={status === "completed"}
-        onChange={() =>
-          toggleStatus({ task_id, title, due_date, description, status })
-        }
-        title={
-          status === "completed"
-            ? "Marcar como pendiente"
-            : "Marcar como completada"
-        }
-      />
+  const renderTask = ({ task_id, title, due_date, description, status }) => {
+    const overdue = isOverdue(due_date);
 
-      <div className="task-main" style={{ flex: 1 }}>
-        <div className="task-header">
+    return (
+      <li
+        className="task-row"
+        key={task_id}
+        style={{
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {/* IZQUIERDA - CHECKBOX */}
+        <div style={{ width: "30px", display: "flex", justifyContent: "center" }}>
+          <input
+            type="checkbox"
+            checked={status === "completed"}
+            onChange={() =>
+              toggleStatus({ task_id, title, due_date, description, status })
+            }
+            title={
+              status === "completed"
+                ? "Marcar como pendiente"
+                : "Marcar como completada"
+            }
+            style={{
+              transform: "scale(0.9)",
+              cursor: "pointer",
+            }}
+          />
+        </div>
+
+        {/* CENTRO - CONTENIDO */}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "flex-start", // 👈 importante (no centrado de texto)
+            padding: "0 10px",
+          }}
+        >
+          {/* TÍTULO */}
           <strong
             className="task-title"
             style={{
-              color: isOverdue(due_date) ? "#ff6b6b" : "var(--text-color)",
+              color: overdue ? "#ff6b6b" : "var(--text-color)",
               textDecoration:
                 status === "completed" ? "line-through" : "none",
+              wordBreak: "break-word",
             }}
           >
             {title}
           </strong>
 
-          <span className="task-date">
-            {" "}
-            — {due_date || "Sin fecha"}
+          {/* FECHA */}
+          <span
+            className="task-date"
+            style={{
+              color: overdue ? "#ff6b6b" : "var(--muted-text)",
+              fontWeight: overdue ? "bold" : "normal",
+              textDecoration:
+                status === "completed" ? "line-through" : "none",
+              marginTop: "2px",
+            }}
+          >
+            {due_date || "Sin fecha"}
           </span>
+
+          {/* DESCRIPCIÓN */}
+          {description && (
+            <div
+              className="task-description"
+              dangerouslySetInnerHTML={{ __html: description }}
+              style={{ marginTop: "0.4rem" }}
+            />
+          )}
         </div>
 
-        {description && (
-          <div
-            className="task-description"
-            dangerouslySetInnerHTML={{ __html: description }}
-          />
-        )}
-      </div>
-
-      <div className="task-actions">
-        <button
-          onClick={() =>
-            setEditingTask({ task_id, title, due_date, description, status })
-          }
-          title="Editar tarea"
-          className="btn-blue"
+        {/* DERECHA - BOTONES */}
+        <div
+          className="task-actions"
+          style={{
+            width: "90px",
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "6px",
+          }}
         >
-          ✏️
-        </button>
+          <button
+            onClick={() =>
+              setEditingTask({ task_id, title, due_date, description, status })
+            }
+            title="Editar tarea"
+            className="btn-blue"
+          >
+            ✏️
+          </button>
 
-        <button
-          onClick={() => handleDelete(task_id)}
-          title="Eliminar tarea"
-          className="btn-red"
-        >
-          🗑️
-        </button>
-      </div>
-    </li>
-  );
+          <button
+            onClick={() => handleDelete(task_id)}
+            title="Eliminar tarea"
+            className="btn-red"
+          >
+            🗑️
+          </button>
+        </div>
+      </li>
+    );
+  };
 
   return (
     <div className="tasks-fullscreen">
-      {/* Panel Izquierdo */}
       <aside className="tasks-list-panel">
         <h2>📋 Mis Tareas</h2>
 
@@ -149,14 +190,17 @@ export default function TaskList({ user }) {
         {error && <p>Error: {error}</p>}
         {!loading && tasks.length === 0 && <p>No hay tareas registradas.</p>}
 
-        {/* 🔽 PENDIENTES */}
+        {/* PENDIENTES */}
         <div>
           <h3
-            style={{ cursor: "pointer" }}
+            style={{
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              marginBottom: "0.4rem",
+            }}
             onClick={() => setShowPending(!showPending)}
-            title="Mostrar/Ocultar tareas pendientes"
           >
-            {showPending ? "🔽" : "▶"} Pendientes ({pendingTasks.length})
+            {showPending ? "▲" : "▼"} Pendientes ({pendingTasks.length})
           </h3>
 
           {showPending && (
@@ -166,14 +210,17 @@ export default function TaskList({ user }) {
           )}
         </div>
 
-        {/* 🔽 COMPLETADAS */}
+        {/* COMPLETADAS */}
         <div style={{ marginTop: "1rem" }}>
           <h3
-            style={{ cursor: "pointer" }}
+            style={{
+              cursor: "pointer",
+              fontSize: "0.9rem",
+              marginBottom: "0.4rem",
+            }}
             onClick={() => setShowCompleted(!showCompleted)}
-            title="Mostrar/Ocultar tareas completadas"
           >
-            {showCompleted ? "🔽" : "▶"} Completadas ({completedTasks.length})
+            {showCompleted ? "▲" : "▼"} Completadas ({completedTasks.length})
           </h3>
 
           {showCompleted && (
@@ -184,7 +231,6 @@ export default function TaskList({ user }) {
         </div>
       </aside>
 
-      {/* Panel Derecho (NO TOCADO) */}
       <main className="tasks-form-panel">
         <TaskForm
           onTaskSaved={fetchTasks}
