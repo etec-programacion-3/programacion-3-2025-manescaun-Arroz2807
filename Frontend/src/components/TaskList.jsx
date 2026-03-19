@@ -9,6 +9,10 @@ export default function TaskList({ user }) {
   const [error, setError] = useState(null);
   const [editingTask, setEditingTask] = useState(null);
 
+  // 🔽 NUEVO: control de desplegables
+  const [showPending, setShowPending] = useState(true);
+  const [showCompleted, setShowCompleted] = useState(true);
+
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -32,9 +36,108 @@ export default function TaskList({ user }) {
     }
   };
 
+  // 🔽 NUEVO: cambiar estado
+  const toggleStatus = async (task) => {
+    const newStatus = task.status === "completed" ? "pending" : "completed";
+
+    try {
+      await fetch(`http://127.0.0.1:5000/api/tasks/${task.task_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      await fetchTasks();
+    } catch (err) {
+      console.error("Error actualizando estado:", err);
+    }
+  };
+
+  // 🔽 NUEVO: detectar vencidas
+  const isOverdue = (due_date) => {
+    if (!due_date) return false;
+    const today = new Date();
+    const due = new Date(due_date);
+
+    today.setHours(0,0,0,0);
+    due.setHours(0,0,0,0);
+
+    return due < today;
+  };
+
   useEffect(() => {
     if (user && user.user_id) fetchTasks();
   }, [user]);
+
+  // 🔽 NUEVO: separar tareas
+  const pendingTasks = tasks.filter((t) => t.status !== "completed");
+  const completedTasks = tasks.filter((t) => t.status === "completed");
+
+  // 🔽 Render reutilizable (NO rompe nada)
+  const renderTask = ({ task_id, title, due_date, description, status }) => (
+    <li className="task-row" key={task_id}>
+      {/* ✅ NUEVO: checkbox */}
+      <input
+        type="checkbox"
+        checked={status === "completed"}
+        onChange={() =>
+          toggleStatus({ task_id, title, due_date, description, status })
+        }
+        title={
+          status === "completed"
+            ? "Marcar como pendiente"
+            : "Marcar como completada"
+        }
+      />
+
+      <div className="task-main" style={{ flex: 1 }}>
+        <div className="task-header">
+          <strong
+            className="task-title"
+            style={{
+              color: isOverdue(due_date) ? "#ff6b6b" : "var(--text-color)",
+              textDecoration:
+                status === "completed" ? "line-through" : "none",
+            }}
+          >
+            {title}
+          </strong>
+
+          <span className="task-date">
+            {" "}
+            — {due_date || "Sin fecha"}
+          </span>
+        </div>
+
+        {description && (
+          <div
+            className="task-description"
+            dangerouslySetInnerHTML={{ __html: description }}
+          />
+        )}
+      </div>
+
+      <div className="task-actions">
+        <button
+          onClick={() =>
+            setEditingTask({ task_id, title, due_date, description, status })
+          }
+          title="Editar tarea"
+          className="btn-blue"
+        >
+          ✏️
+        </button>
+
+        <button
+          onClick={() => handleDelete(task_id)}
+          title="Eliminar tarea"
+          className="btn-red"
+        >
+          🗑️
+        </button>
+      </div>
+    </li>
+  );
 
   return (
     <div className="tasks-fullscreen">
@@ -46,47 +149,42 @@ export default function TaskList({ user }) {
         {error && <p>Error: {error}</p>}
         {!loading && tasks.length === 0 && <p>No hay tareas registradas.</p>}
 
-        <ul className="tasks-list-ul">
-          {tasks.map(({ task_id, title, due_date, description }) => (
-            <li className="task-row" key={task_id}>
-              <div className="task-main">
-                <div className="task-header">
-                  <strong className="task-title">{title}</strong>
-                  <span className="task-date"> — {due_date || "Sin fecha"}</span>
-                </div>
-                {description && (
-                  <div
-                    className="task-description"
-                    dangerouslySetInnerHTML={{ __html: description }}
-                  />
-                )}
-              </div>
+        {/* 🔽 PENDIENTES */}
+        <div>
+          <h3
+            style={{ cursor: "pointer" }}
+            onClick={() => setShowPending(!showPending)}
+            title="Mostrar/Ocultar tareas pendientes"
+          >
+            {showPending ? "🔽" : "▶"} Pendientes ({pendingTasks.length})
+          </h3>
 
-              <div className="task-actions">
-                <button
-                  onClick={() =>
-                    setEditingTask({ task_id, title, due_date, description })
-                  }
-                  title="Editar tarea"
-                  className="btn-blue"
-                >
-                  ✏️
-                </button>
+          {showPending && (
+            <ul className="tasks-list-ul">
+              {pendingTasks.map(renderTask)}
+            </ul>
+          )}
+        </div>
 
-                <button
-                  onClick={() => handleDelete(task_id)}
-                  title="Eliminar tarea"
-                  className="btn-red"
-                >
-                  🗑️
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* 🔽 COMPLETADAS */}
+        <div style={{ marginTop: "1rem" }}>
+          <h3
+            style={{ cursor: "pointer" }}
+            onClick={() => setShowCompleted(!showCompleted)}
+            title="Mostrar/Ocultar tareas completadas"
+          >
+            {showCompleted ? "🔽" : "▶"} Completadas ({completedTasks.length})
+          </h3>
+
+          {showCompleted && (
+            <ul className="tasks-list-ul">
+              {completedTasks.map(renderTask)}
+            </ul>
+          )}
+        </div>
       </aside>
 
-      {/* Panel Derecho */}
+      {/* Panel Derecho (NO TOCADO) */}
       <main className="tasks-form-panel">
         <TaskForm
           onTaskSaved={fetchTasks}

@@ -323,6 +323,12 @@ button {
   align-items: start;
 }
 
+.task-row input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+  margin-top: 4px;
+}
+
 /* Panel del formulario (derecha) */
 .tasks-form-panel {
   width: 45%;
