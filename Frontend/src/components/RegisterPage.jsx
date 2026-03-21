@@ -144,7 +144,7 @@ export default function RegisterPage({ onRegister }) {
         }}
       >
         <div className="auth-right-content" style={{ maxWidth: "5000x", textAlign: "left" }}>
-          <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "white" }}>Flownote</h1>
+          <h1 style={{ fontSize: "3rem", marginBottom: "1rem", color: "white" }}>Study Flow</h1>
           <h2 style={{ color: "var(--text-color)", marginBottom: "1rem" }}>
             Empezá a organizarte desde hoy.
           </h2>

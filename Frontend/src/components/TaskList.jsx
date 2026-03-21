@@ -12,6 +12,9 @@ export default function TaskList({ user }) {
   const [showPending, setShowPending] = useState(true);
   const [showCompleted, setShowCompleted] = useState(true);
 
+  const [filterDate, setFilterDate] = useState("");
+  const [draggedTask, setDraggedTask] = useState(null);
+
   const fetchTasks = async () => {
     setLoading(true);
     try {
@@ -62,26 +65,107 @@ export default function TaskList({ user }) {
     return due < today;
   };
 
+  // 🔥 COLOR URGENCIA MEJORADO
+  const getUrgencyColor = (due_date) => {
+    if (!due_date) return "#5a5a5a"; // gris más visible
+
+    const today = new Date();
+    const due = new Date(due_date);
+
+    const diff = (due - today) / (1000 * 60 * 60 * 24);
+
+    if (diff < 0) return "#ff4d4d";
+    if (diff <= 2) return "#ff8800";
+    if (diff <= 7) return "#ffd93b";
+    return "#22c55e";
+  };
+
+  const sortByUrgency = (tasksList) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return [...tasksList].sort((a, b) => {
+      if (!a.due_date && !b.due_date) return 0;
+      if (!a.due_date) return 1;
+      if (!b.due_date) return -1;
+
+      const dateA = new Date(a.due_date);
+      const dateB = new Date(b.due_date);
+
+      dateA.setHours(0, 0, 0, 0);
+      dateB.setHours(0, 0, 0, 0);
+
+      const aOverdue = dateA < today;
+      const bOverdue = dateB < today;
+
+      if (aOverdue && !bOverdue) return -1;
+      if (!aOverdue && bOverdue) return 1;
+
+      return dateA - dateB;
+    });
+  };
+
   useEffect(() => {
     if (user && user.user_id) fetchTasks();
   }, [user]);
 
-  const pendingTasks = tasks.filter((t) => t.status !== "completed");
-  const completedTasks = tasks.filter((t) => t.status === "completed");
+  const filteredTasks = tasks.filter((t) => {
+    if (!filterDate) return true;
+    return t.due_date === filterDate;
+  });
+
+  const pendingTasks = sortByUrgency(
+    filteredTasks.filter((t) => t.status !== "completed")
+  );
+
+  const completedTasks = sortByUrgency(
+    filteredTasks.filter((t) => t.status === "completed")
+  );
+
+  // 🔥 DRAG FIX REAL
+  const handleDragStart = (task) => {
+    setDraggedTask(task);
+  };
+
+  const handleDrop = async (e, targetStatus) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!draggedTask) return;
+
+    try {
+      await fetch(`http://127.0.0.1:5000/api/tasks/${draggedTask.task_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: targetStatus }),
+      });
+
+      setDraggedTask(null);
+      await fetchTasks();
+    } catch (err) {
+      console.error("Error en drag & drop:", err);
+    }
+  };
 
   const renderTask = ({ task_id, title, due_date, description, status }) => {
     const overdue = isOverdue(due_date);
+    const urgencyColor = getUrgencyColor(due_date);
 
     return (
       <li
         className="task-row"
         key={task_id}
+        draggable
+        onDragStart={() =>
+          handleDragStart({ task_id, title, due_date, description, status })
+        }
         style={{
           display: "flex",
           alignItems: "center",
+          borderLeft: `6px solid ${urgencyColor}`,
         }}
       >
-        {/* IZQUIERDA - CHECKBOX */}
+        {/* CHECKBOX */}
         <div style={{ width: "30px", display: "flex", justifyContent: "center" }}>
           <input
             type="checkbox"
@@ -89,91 +173,59 @@ export default function TaskList({ user }) {
             onChange={() =>
               toggleStatus({ task_id, title, due_date, description, status })
             }
-            title={
-              status === "completed"
-                ? "Marcar como pendiente"
-                : "Marcar como completada"
-            }
-            style={{
-              transform: "scale(0.9)",
-              cursor: "pointer",
-            }}
+            style={{ transform: "scale(0.9)", cursor: "pointer" }}
           />
         </div>
 
-        {/* CENTRO - CONTENIDO */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "flex-start", // 👈 importante (no centrado de texto)
-            padding: "0 10px",
-          }}
-        >
-          {/* TÍTULO */}
+        {/* CONTENIDO */}
+        <div style={{ flex: 1, padding: "0 10px" }}>
           <strong
             className="task-title"
             style={{
+              fontSize: "1.05rem", // 🔥 MÁS GRANDE
               color: overdue ? "#ff6b6b" : "var(--text-color)",
               textDecoration:
                 status === "completed" ? "line-through" : "none",
-              wordBreak: "break-word",
             }}
           >
             {title}
           </strong>
 
-          {/* FECHA */}
-          <span
-            className="task-date"
-            style={{
-              color: overdue ? "#ff6b6b" : "var(--muted-text)",
-              fontWeight: overdue ? "bold" : "normal",
-              textDecoration:
-                status === "completed" ? "line-through" : "none",
-              marginTop: "2px",
-            }}
-          >
-            {due_date || "Sin fecha"}
-          </span>
+          <div>
+            <span
+              className="task-date"
+              style={{
+                fontSize: "0.85rem", // 🔥 MÁS CHICA
+                color: overdue ? "#ff6b6b" : "var(--muted-text)",
+                fontWeight: overdue ? "bold" : "normal",
+                textDecoration:
+                  status === "completed" ? "line-through" : "none",
+              }}
+            >
+              {due_date || "Sin fecha"}
+            </span>
+          </div>
 
-          {/* DESCRIPCIÓN */}
           {description && (
             <div
               className="task-description"
               dangerouslySetInnerHTML={{ __html: description }}
-              style={{ marginTop: "0.4rem" }}
             />
           )}
         </div>
 
-        {/* DERECHA - BOTONES */}
-        <div
-          className="task-actions"
-          style={{
-            width: "90px",
-            display: "flex",
-            justifyContent: "flex-end",
-            gap: "6px",
-          }}
-        >
+        {/* BOTONES */}
+        <div className="task-actions" style={{ width: "90px" }}>
           <button
             onClick={() =>
               setEditingTask({ task_id, title, due_date, description, status })
             }
-            title="Editar tarea"
             className="btn-blue"
           >
             ✏️
           </button>
 
-          <button
-            onClick={() => handleDelete(task_id)}
-            title="Eliminar tarea"
-            className="btn-red"
-          >
+          <button onClick={() => handleDelete(task_id)} className="btn-red">
             🗑️
           </button>
         </div>
@@ -186,48 +238,74 @@ export default function TaskList({ user }) {
       <aside className="tasks-list-panel">
         <h2>📋 Mis Tareas</h2>
 
+        <input
+          type="date"
+          value={filterDate}
+          onChange={(e) => setFilterDate(e.target.value)}
+          style={{ marginBottom: "1rem" }}
+        />
+
         {loading && <p>Cargando tareas...</p>}
         {error && <p>Error: {error}</p>}
-        {!loading && tasks.length === 0 && <p>No hay tareas registradas.</p>}
 
         {/* PENDIENTES */}
-        <div>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => handleDrop(e, "pending")}
+        >
           <h3
             style={{
               cursor: "pointer",
-              fontSize: "0.9rem",
-              marginBottom: "0.4rem",
+              marginTop: "1.2rem", // 🔥 MÁS ESPACIO
+              marginBottom: "0.6rem",
+              fontSize: "1.05rem",
             }}
             onClick={() => setShowPending(!showPending)}
           >
             {showPending ? "▲" : "▼"} Pendientes ({pendingTasks.length})
           </h3>
 
-          {showPending && (
+          <div
+            style={{
+              maxHeight: showPending ? "1000px" : "0px",
+              overflow: "hidden",
+              transition: "max-height 0.3s ease",
+            }}
+          >
             <ul className="tasks-list-ul">
               {pendingTasks.map(renderTask)}
             </ul>
-          )}
+          </div>
         </div>
 
         {/* COMPLETADAS */}
-        <div style={{ marginTop: "1rem" }}>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => handleDrop(e, "completed")}
+        >
           <h3
             style={{
               cursor: "pointer",
-              fontSize: "0.9rem",
-              marginBottom: "0.4rem",
+              marginTop: "1.2rem",
+              marginBottom: "0.6rem",
+              fontSize: "1.05rem",
             }}
             onClick={() => setShowCompleted(!showCompleted)}
           >
             {showCompleted ? "▲" : "▼"} Completadas ({completedTasks.length})
           </h3>
 
-          {showCompleted && (
+          <div
+            style={{
+              maxHeight: showCompleted ? "1000px" : "0px",
+              overflow: "hidden",
+              transition: "max-height 0.3s ease",
+            }}
+          >
             <ul className="tasks-list-ul">
               {completedTasks.map(renderTask)}
             </ul>
-          )}
+          </div>
         </div>
       </aside>
 
