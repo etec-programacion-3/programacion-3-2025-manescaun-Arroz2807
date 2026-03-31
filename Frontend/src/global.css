@@ -154,7 +154,7 @@ body {
 .auth-right-content p {
   color: #d0d0d0;
   line-height: 1.6;
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 /* ===========================================================
@@ -321,6 +321,12 @@ button {
   display: flex;
   gap: 0.5rem;
   align-items: start;
+}
+
+.task-row input[type="checkbox"] {
+  transform: scale(1.2);
+  cursor: pointer;
+  margin-top: 4px;
 }
 
 /* Panel del formulario (derecha) */
