@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getTasks, deleteTask } from "../services/api";
+import { getTasks, deleteTask, updateTask } from "../services/api";
 import TaskForm from "./TaskForm";
 import "../global.css";
 
@@ -38,16 +38,11 @@ export default function TaskList({ user }) {
     }
   };
 
+  // ✅ Usa updateTask de api.js en vez de fetch hardcodeado
   const toggleStatus = async (task) => {
     const newStatus = task.status === "completed" ? "pending" : "completed";
-
     try {
-      await fetch(`http://127.0.0.1:5000/api/tasks/${task.task_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
+      await updateTask(task.task_id, { status: newStatus }, task.user_id);
       await fetchTasks();
     } catch (err) {
       console.error("Error actualizando estado:", err);
@@ -58,22 +53,16 @@ export default function TaskList({ user }) {
     if (!due_date) return false;
     const today = new Date();
     const due = new Date(due_date);
-
     today.setHours(0, 0, 0, 0);
     due.setHours(0, 0, 0, 0);
-
     return due < today;
   };
 
-  // 🔥 COLOR URGENCIA MEJORADO
   const getUrgencyColor = (due_date) => {
-    if (!due_date) return "#5a5a5a"; // gris más visible
-
+    if (!due_date) return "#5a5a5a";
     const today = new Date();
     const due = new Date(due_date);
-
     const diff = (due - today) / (1000 * 60 * 60 * 24);
-
     if (diff < 0) return "#ff4d4d";
     if (diff <= 2) return "#ff8800";
     if (diff <= 7) return "#ffd93b";
@@ -83,24 +72,18 @@ export default function TaskList({ user }) {
   const sortByUrgency = (tasksList) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
     return [...tasksList].sort((a, b) => {
       if (!a.due_date && !b.due_date) return 0;
       if (!a.due_date) return 1;
       if (!b.due_date) return -1;
-
       const dateA = new Date(a.due_date);
       const dateB = new Date(b.due_date);
-
       dateA.setHours(0, 0, 0, 0);
       dateB.setHours(0, 0, 0, 0);
-
       const aOverdue = dateA < today;
       const bOverdue = dateB < today;
-
       if (aOverdue && !bOverdue) return -1;
       if (!aOverdue && bOverdue) return 1;
-
       return dateA - dateB;
     });
   };
@@ -114,32 +97,18 @@ export default function TaskList({ user }) {
     return t.due_date === filterDate;
   });
 
-  const pendingTasks = sortByUrgency(
-    filteredTasks.filter((t) => t.status !== "completed")
-  );
+  const pendingTasks = sortByUrgency(filteredTasks.filter((t) => t.status !== "completed"));
+  const completedTasks = sortByUrgency(filteredTasks.filter((t) => t.status === "completed"));
 
-  const completedTasks = sortByUrgency(
-    filteredTasks.filter((t) => t.status === "completed")
-  );
+  const handleDragStart = (task) => setDraggedTask(task);
 
-  // 🔥 DRAG FIX REAL
-  const handleDragStart = (task) => {
-    setDraggedTask(task);
-  };
-
+  // ✅ Usa updateTask de api.js en vez de fetch hardcodeado
   const handleDrop = async (e, targetStatus) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!draggedTask) return;
-
     try {
-      await fetch(`http://127.0.0.1:5000/api/tasks/${draggedTask.task_id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: targetStatus }),
-      });
-
+      await updateTask(draggedTask.task_id, { status: targetStatus }, draggedTask.user_id);
       setDraggedTask(null);
       await fetchTasks();
     } catch (err) {
@@ -147,84 +116,60 @@ export default function TaskList({ user }) {
     }
   };
 
-  const renderTask = ({ task_id, title, due_date, description, status }) => {
+  const renderTask = ({ task_id, title, due_date, description, status, user_id }) => {
     const overdue = isOverdue(due_date);
     const urgencyColor = getUrgencyColor(due_date);
-
     return (
       <li
         className="task-row"
         key={task_id}
         draggable
-        onDragStart={() =>
-          handleDragStart({ task_id, title, due_date, description, status })
-        }
-        style={{
-          display: "flex",
-          alignItems: "center",
-          borderLeft: `6px solid ${urgencyColor}`,
-        }}
+        onDragStart={() => handleDragStart({ task_id, title, due_date, description, status, user_id })}
+        style={{ display: "flex", alignItems: "center", borderLeft: `6px solid ${urgencyColor}` }}
       >
-        {/* CHECKBOX */}
         <div style={{ width: "30px", display: "flex", justifyContent: "center" }}>
           <input
             type="checkbox"
             checked={status === "completed"}
-            onChange={() =>
-              toggleStatus({ task_id, title, due_date, description, status })
-            }
+            onChange={() => toggleStatus({ task_id, title, due_date, description, status, user_id })}
             style={{ transform: "scale(0.9)", cursor: "pointer" }}
           />
         </div>
-
-        {/* CONTENIDO */}
         <div style={{ flex: 1, padding: "0 10px" }}>
           <strong
             className="task-title"
             style={{
-              fontSize: "1.05rem", // 🔥 MÁS GRANDE
+              fontSize: "1.05rem",
               color: overdue ? "#ff6b6b" : "var(--text-color)",
-              textDecoration:
-                status === "completed" ? "line-through" : "none",
+              textDecoration: status === "completed" ? "line-through" : "none",
             }}
           >
             {title}
           </strong>
-
           <div>
             <span
               className="task-date"
               style={{
-                fontSize: "0.85rem", // 🔥 MÁS CHICA
+                fontSize: "0.85rem",
                 color: overdue ? "#ff6b6b" : "var(--muted-text)",
                 fontWeight: overdue ? "bold" : "normal",
-                textDecoration:
-                  status === "completed" ? "line-through" : "none",
+                textDecoration: status === "completed" ? "line-through" : "none",
               }}
             >
               {due_date || "Sin fecha"}
             </span>
           </div>
-
           {description && (
-            <div
-              className="task-description"
-              dangerouslySetInnerHTML={{ __html: description }}
-            />
+            <div className="task-description" dangerouslySetInnerHTML={{ __html: description }} />
           )}
         </div>
-
-        {/* BOTONES */}
         <div className="task-actions" style={{ width: "90px" }}>
           <button
-            onClick={() =>
-              setEditingTask({ task_id, title, due_date, description, status })
-            }
+            onClick={() => setEditingTask({ task_id, title, due_date, description, status })}
             className="btn-blue"
           >
             ✏️
           </button>
-
           <button onClick={() => handleDelete(task_id)} className="btn-red">
             🗑️
           </button>
@@ -237,78 +182,37 @@ export default function TaskList({ user }) {
     <div className="tasks-fullscreen">
       <aside className="tasks-list-panel">
         <h2>📋 Mis Tareas</h2>
-
         <input
           type="date"
           value={filterDate}
           onChange={(e) => setFilterDate(e.target.value)}
           style={{ marginBottom: "1rem" }}
         />
-
         {loading && <p>Cargando tareas...</p>}
         {error && <p>Error: {error}</p>}
-
-        {/* PENDIENTES */}
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => handleDrop(e, "pending")}
-        >
+        <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, "pending")}>
           <h3
-            style={{
-              cursor: "pointer",
-              marginTop: "1.2rem", // 🔥 MÁS ESPACIO
-              marginBottom: "0.6rem",
-              fontSize: "1.05rem",
-            }}
+            style={{ cursor: "pointer", marginTop: "1.2rem", marginBottom: "0.6rem", fontSize: "1.05rem" }}
             onClick={() => setShowPending(!showPending)}
           >
             {showPending ? "▲" : "▼"} Pendientes ({pendingTasks.length})
           </h3>
-
-          <div
-            style={{
-              maxHeight: showPending ? "1000px" : "0px",
-              overflow: "hidden",
-              transition: "max-height 0.3s ease",
-            }}
-          >
-            <ul className="tasks-list-ul">
-              {pendingTasks.map(renderTask)}
-            </ul>
+          <div style={{ maxHeight: showPending ? "1000px" : "0px", overflow: "hidden", transition: "max-height 0.3s ease" }}>
+            <ul className="tasks-list-ul">{pendingTasks.map(renderTask)}</ul>
           </div>
         </div>
-
-        {/* COMPLETADAS */}
-        <div
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => handleDrop(e, "completed")}
-        >
+        <div onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, "completed")}>
           <h3
-            style={{
-              cursor: "pointer",
-              marginTop: "1.2rem",
-              marginBottom: "0.6rem",
-              fontSize: "1.05rem",
-            }}
+            style={{ cursor: "pointer", marginTop: "1.2rem", marginBottom: "0.6rem", fontSize: "1.05rem" }}
             onClick={() => setShowCompleted(!showCompleted)}
           >
             {showCompleted ? "▲" : "▼"} Completadas ({completedTasks.length})
           </h3>
-
-          <div
-            style={{
-              maxHeight: showCompleted ? "1000px" : "0px",
-              overflow: "hidden",
-              transition: "max-height 0.3s ease",
-            }}
-          >
-            <ul className="tasks-list-ul">
-              {completedTasks.map(renderTask)}
-            </ul>
+          <div style={{ maxHeight: showCompleted ? "1000px" : "0px", overflow: "hidden", transition: "max-height 0.3s ease" }}>
+            <ul className="tasks-list-ul">{completedTasks.map(renderTask)}</ul>
           </div>
         </div>
       </aside>
-
       <main className="tasks-form-panel">
         <TaskForm
           onTaskSaved={fetchTasks}
