@@ -10,7 +10,7 @@ services:
     environment:
       - DATABASE_URL=sqlite:////app/instance/app.db
       - SECRET_KEY=tu-clave-secreta
-      - CORS_ORIGINS=http://localhost:3000
+      - - CORS_ORIGINS=http://localhost:80,http://localhost
       - FLASK_APP=app.py
     networks:
       - app-network
