@@ -3,8 +3,8 @@
 // ==========================================================
 
 // Obtener la URL del backend desde variables de entorno
-const BACKEND_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
-const API_URL = `${BACKEND_URL}/api`;
+const API_URL = "/api";
+const BACKEND_URL = "";
 
 console.log("🔗 Backend URL configurada:", BACKEND_URL);
 
