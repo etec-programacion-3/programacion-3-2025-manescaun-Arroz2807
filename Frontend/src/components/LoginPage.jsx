@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../global.css";
 
-const BACKEND_URL = "http://backend:5000" || "http://127.0.0.1:5000";
+const BACKEND_URL = "http://backend:5000"; //|| "http://127.0.0.1:5000";
 
 export default function LoginPage({ onLogin }) {
   const navigate = useNavigate();
