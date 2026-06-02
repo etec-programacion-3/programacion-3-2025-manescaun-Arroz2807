@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../global.css";
 
-const BACKEND_URL = "http://backend:5000" || "http://127.0.0.1:5000";
 
 export default function RegisterPage({ onRegister }) {
   const navigate = useNavigate();
@@ -24,7 +23,7 @@ export default function RegisterPage({ onRegister }) {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/users/register`, {
+      const res = await fetch(`/users/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
